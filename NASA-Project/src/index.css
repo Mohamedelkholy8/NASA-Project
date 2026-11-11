@@ -1,0 +1,542 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Roboto Mono", monospace;
+}
+
+/* مكان الماوس (من -1 لـ 1) - بيتحدث من الـ  */
+:root {
+  --mx: 0;
+  --my: 0;
+  --bg-primary: #090A10;       /* Deepest black/charcoal background */
+  --bg-surface: #121526;       /* Card/Container background */
+  --accent-purple: #8A5CB6;    /* Glowing purple from left nebula */
+  --accent-orange: #C85A32;    /* Warm rust red from the planet bottom-left */
+  --accent-blue: #3B7BD3;      /* Deep blue from the planet bottom-right */
+  --text-main: #FFFFFF;        /* Bright white text */
+  --text-muted: #B4B8C5;       /* Subtitle text */
+  --border-subtle: #252A40;    /* Low-contrast borders */
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #05010f;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.home-hero {
+  position: relative;
+  isolation: isolate;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.space-bg {
+  position: absolute;
+  inset: -6%;
+  background: url("../assets/img/background.png") center / cover no-repeat;
+  animation: drift 45s ease-in-out infinite alternate;
+  translate: calc(var(--mx) * -8px) calc(var(--my) * -8px);
+  transition: translate 0.4s ease-out;
+  z-index: 0;
+}
+
+@keyframes drift {
+  from {
+    transform: scale(1) translate(0, 0);
+  }
+  to {
+    transform: scale(1.12) translate(-2%, -2%);
+  }
+}
+
+.stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: repeat;
+  z-index: 1;
+  transition: translate 0.4s ease-out;
+}
+
+.stars--1 {
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 90px 120px, #fff, transparent),
+    radial-gradient(1px 1px at 160px 60px, #cdd7ff, transparent),
+    radial-gradient(1px 1px at 210px 190px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 40px 210px, #cdd7ff, transparent),
+    radial-gradient(1px 1px at 130px 235px, #fff, transparent);
+  background-size: 250px 250px;
+  translate: calc(var(--mx) * -14px) calc(var(--my) * -14px);
+  animation:
+    stars-move-1 90s linear infinite,
+    twinkle 4s ease-in-out infinite alternate;
+}
+
+.stars--2 {
+  background-image:
+    radial-gradient(2px 2px at 50px 80px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 200px 40px, #e4c9ff, transparent),
+    radial-gradient(2px 2px at 120px 220px, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 290px 150px, #e4c9ff, transparent),
+    radial-gradient(2px 2px at 20px 310px, #fff, transparent);
+  background-size: 350px 350px;
+  translate: calc(var(--mx) * -26px) calc(var(--my) * -26px);
+  animation:
+    stars-move-2 150s linear infinite,
+    twinkle 6s ease-in-out 1s infinite alternate;
+}
+
+@keyframes stars-move-1 {
+  to {
+    background-position: -250px 250px;
+  }
+}
+
+@keyframes stars-move-2 {
+  to {
+    background-position: -350px 350px;
+  }
+}
+
+@keyframes twinkle {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.shooting-star {
+  position: absolute;
+  top: 12%;
+  left: 75%;
+  width: 120px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #fff, transparent);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+  animation: shoot 6s ease-in infinite;
+}
+
+@keyframes shoot {
+  0% {
+    transform: translate(0, 0) rotate(-35deg);
+    opacity: 0;
+  }
+  4% {
+    opacity: 1;
+  }
+  32% {
+    transform: translate(-420px, 294px) rotate(-35deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-420px, 294px) rotate(-35deg);
+    opacity: 0;
+  }
+}
+
+header,
+.hero-section {
+  position: relative;
+  z-index: 2;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30px 100px;
+}
+.content h1 span {
+  text-transform: uppercase;
+}
+
+.logo {
+  font-family: "Syncopate-Bold";
+  font-weight: 800;
+  color: #fff;
+}
+.nav ul {
+  display: flex;
+  align-items: center;
+}
+.nav ul li {
+  font-family: "Syncopate-Bold";
+  font-weight: 800;
+  color: #fff;
+  margin-left: 50px;
+  list-style: none;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+.nav ul li:hover {
+  background: linear-gradient(to bottom, #8da4ea, #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.btn {
+  font-family: "Syncopate-Bold";
+  font-weight: 800;
+  color: #fff;
+  border: 1px solid #8da4ea;
+  padding: 10px 25px;
+  border-top-left-radius: 10px;
+  background: transparent;
+}
+.content h1 {
+  font-family: "Syncopate-Bold";
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+  line-height: 1.25;
+  margin-top: 3%;
+}
+.content h1 span {
+  background: linear-gradient(to bottom, #8da4ea, #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.content p {
+  font-family: "Syncopate-Bold";
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+  text-transform: capitalize;
+  line-height: 1.6;
+  padding: 30px 0px 40px;
+}
+.center-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.content button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.content .btn span {
+  border: 2px solid #fff;
+  border-radius: 30px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(90deg);
+}
+
+.earth-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 37px;
+  position: relative;
+  width: 100%;
+}
+
+.earth-img > img {
+  margin-bottom: -551px;
+  transform-origin: center center;
+  animation: planet-spin 150s linear infinite;
+  will-change: transform;
+  pointer-events: none;
+}
+
+@keyframes planet-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.globe {
+  position: absolute;
+  top: 0px;
+  left: 210px;
+  width: 165px;
+  height: 165px;
+  translate: calc(var(--mx) * -18px) calc(var(--my) * -18px);
+  transition: translate 0.4s ease-out;
+  animation: float 10s ease-in-out infinite reverse;
+  pointer-events: none;
+}
+
+.globe img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: globe-spin 60s linear infinite;
+  will-change: transform;
+}
+
+@keyframes globe-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.earth-img::after {
+  content: "";
+  position: absolute;
+  background-image: url("../assets/img/space-research.png");
+  background-repeat: no-repeat;
+  background-size: contain;
+  right: 120px;
+  top: -204px;
+  width: 35%;
+  height: 147%;
+  translate: calc(var(--mx) * -34px) calc(var(--my) * -34px);
+  transition: translate 0.4s ease-out;
+  animation: float 7s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+@media (max-width: 1024px) {
+  .earth-img::after {
+    top: 25px;
+    right: 40px;
+    width: clamp(140px, 22vw, 220px);
+    height: clamp(200px, 32vw, 320px);
+  }
+}
+
+@media (max-width: 768px) {
+  .earth-img::after {
+    top: 20px;
+    right: 20px;
+    width: clamp(110px, 26vw, 160px);
+    height: clamp(160px, 38vw, 235px);
+  }
+}
+
+@media (max-width: 480px) {
+  .earth-img::after {
+    top: 15px;
+    right: 12px;
+    width: clamp(90px, 28vw, 125px);
+    height: clamp(130px, 40vw, 180px);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    
+    transform: translateY(-22px) rotate(2deg);
+  }
+}
+
+.not-found {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #fff;
+  text-align: center;
+}
+
+.not-found .btn {
+  display: inline-block;
+  text-decoration: none;
+  margin-top: 8px;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.sloganTittle{
+  font-size: 233px;
+}
+
+.bigTittle{
+  font-size: 144px;
+}
+
+.normalTittle{
+  font-size: 89px;
+}
+
+.smallTittle{
+  font-size: 55px;
+}
+
+.bigText{
+  font-size: 34px;
+}
+
+.normalText{
+  font-size: 21px;
+}
+
+.smallText{
+  font-size: 13px;
+}
+
+.soSmallText{
+  font-size: 8px;
+}
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+  .sloganTittle{
+  font-size: calc(233px / (1.27*1.27*1.27*1.27));
+}
+  .bigTittle{
+  font-size: calc(144px / (1.27*1.27*1.27*1.27));
+}
+
+.normalTittle{
+  font-size: calc(89px / (1.27*1.27*1.27*1.27));
+}
+
+.smallTittle{
+  font-size: calc(55px / (1.27*1.27*1.27*1.27));
+}
+
+.bigText{
+  font-size: calc(34px / (1.27*1.27*1.27*1.27));
+}
+
+.normalText{
+  font-size: calc(21px / (1.27*1.27*1.27*1.27));
+}
+
+.smallText{
+  font-size: calc(13px / (1.27*1.27*1.27*1.27));
+}
+
+.soSmallText{
+  font-size: calc(8px / (1.27*1.27*1.27*1.27));
+}
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+  .sloganTittle{
+  font-size: calc(233px / (1.27*1.27*1.27));
+}
+
+.bigTittle{
+  font-size: calc(144px / (1.27*1.27*1.27));
+}
+
+.normalTittle{
+  font-size: calc(89px / (1.27*1.27*1.27));
+}
+
+.smallTittle{
+  font-size: calc(55px / (1.27*1.27*1.27));
+}
+
+.bigText{
+  font-size: calc(34px / (1.27*1.27*1.27));
+}
+
+.normalText{
+  font-size: calc(21px / (1.27*1.27*1.27));
+}
+
+.smallText{
+  font-size: calc(13px / (1.27*1.27*1.27));
+}
+
+.soSmallText{
+  font-size: calc(8px / (1.27*1.27*1.27));
+}
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+  .sloganTittle{
+  font-size: calc(233px / (1.27*1.27));
+}
+
+.bigTittle{
+  font-size: calc(144px / (1.27*1.27));
+}
+
+.normalTittle{
+  font-size: calc(89px / (1.27*1.27));
+}
+
+.smallTittle{
+  font-size: calc(55px / (1.27*1.27));
+}
+
+.bigText{
+  font-size: calc(34px / (1.27*1.27));
+}
+
+.normalText{
+  font-size: calc(21px / (1.27*1.27));
+}
+
+.smallText{
+  font-size: calc(13px / (1.27*1.27));
+}
+
+.soSmallText{
+  font-size: calc(8px / (1.27*1.27));
+}
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (min-width: 992px) {
+  .sloganTittle{
+  font-size: calc(233px / 1.27);
+}
+
+.bigTittle{
+  font-size: calc(144px / 1.27);
+}
+
+.normalTittle{
+  font-size: calc(89px / 1.27);
+}
+
+.smallTittle{
+  font-size: calc(55px / 1.27);
+}
+
+.bigText{
+  font-size: calc(34px / 1.27);
+}
+
+.normalText{
+  font-size: calc(21px / 1.27);
+}
+
+.smallText{
+  font-size: calc(13px / 1.27);
+}
+
+.soSmallText{
+  font-size: calc(8px / 1.27);
+}
+}
