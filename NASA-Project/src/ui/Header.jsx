@@ -1,7 +1,7 @@
 function Header() {
   return (
     <header>
-      <div className="logo normalText">Logo</div>
+      <div className="logo">Accioverse</div>
     </header>
   );
 }

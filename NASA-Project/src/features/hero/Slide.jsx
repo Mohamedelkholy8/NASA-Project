@@ -3,8 +3,11 @@
 import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import astronautImg from "../../../assets/img/space-research.png";
 
 gsap.registerPlugin(ScrollTrigger);
+// على الموبايل: ماتعملش refresh كل ما شريط العنوان يطلع/ينزل (بيعمل نط في الـ pin)
+ScrollTrigger.config({ ignoreMobileResize: true });
 
 /* ---------- Content: edit freely. Add `image: "/your.jpg"` to use a photo ---------- */
 const SLIDES = [
@@ -65,12 +68,21 @@ export default function Slide() {
   const track = useRef(null);
   const ghost = useRef(null);
   const bar = useRef(null);
+  const astro = useRef(null);
 
   useLayoutEffect(() => {
     const mm = gsap.matchMedia();
 
     mm.add("(prefers-reduced-motion: no-preference)", () => {
       const getDistance = () => track.current.scrollWidth - window.innerWidth;
+
+      // الرائد بيميل شوية حسب سرعة السكرول، وبيرجع يتعدل لما السكرول يقف
+      const tilt = gsap.quickTo(astro.current, "rotation", {
+        duration: 0.9,
+        ease: "power3.out",
+      });
+      const resetTilt = () => tilt(0);
+      ScrollTrigger.addEventListener("scrollEnd", resetTilt);
 
       // 1) Pin the section and scrub the track sideways
       const scroll = gsap.to(track.current, {
@@ -84,6 +96,46 @@ export default function Slide() {
           end: () => "+=" + getDistance(),
           invalidateOnRefresh: true,
           anticipatePin: 1,
+          onUpdate: (self) =>
+            tilt(gsap.utils.clamp(-14, 14, self.getVelocity() / -300)),
+        },
+      });
+
+      // 1b) Astronaut travels from the first card to the last card.
+      //     Start: centred on the first card's left edge.
+      //     End:   centred on the last card's right edge (when the scroll ends).
+      //     He moves slower than the track, so the cards slide past him.
+      const cards = gsap.utils.toArray(".sl-card", root.current);
+      const first = cards[0];
+      const last = cards[cards.length - 1];
+      const half = () => astro.current.offsetWidth / 2;
+
+      gsap.fromTo(
+        astro.current,
+        { x: () => first.offsetLeft - half() },
+        {
+          x: () => last.offsetLeft + last.offsetWidth - getDistance() - half(),
+          ease: "none",
+          scrollTrigger: {
+            trigger: root.current,
+            start: "top top",
+            end: () => "+=" + getDistance(),
+            scrub: 1.5,
+            invalidateOnRefresh: true,
+          },
+        }
+      );
+
+      // bobs up/down while you scroll, like swimming
+      gsap.to(astro.current, {
+        keyframes: { y: [0, -80, 40, -60, 30], easeEach: "sine.inOut" },
+        ease: "none",
+        scrollTrigger: {
+          trigger: root.current,
+          start: "top top",
+          end: () => "+=" + getDistance(),
+          scrub: 1.5,
+          invalidateOnRefresh: true,
         },
       });
 
@@ -101,17 +153,19 @@ export default function Slide() {
       });
 
       // 3) Progress bar
-      gsap.to(bar.current, {
-        scaleX: 1,
-        ease: "none",
-        scrollTrigger: {
-          trigger: root.current,
-          start: "top top",
-          end: () => "+=" + getDistance(),
-          scrub: true,
-          invalidateOnRefresh: true,
-        },
-      });
+      if (bar.current) {
+        gsap.to(bar.current, {
+          scaleX: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: root.current,
+            start: "top top",
+            end: () => "+=" + getDistance(),
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        });
+      }
 
       // 4) Each card straightens up + brightens as it crosses the viewport centre
       gsap.utils.toArray(".sl-card").forEach((card) => {
@@ -134,6 +188,8 @@ export default function Slide() {
           }
         );
       });
+
+      return () => ScrollTrigger.removeEventListener("scrollEnd", resetTilt);
     });
 
     return () => mm.revert();
@@ -146,6 +202,13 @@ export default function Slide() {
       <h2 ref={ghost} className="sl-ghost" aria-hidden="true">
         SPACE MOMENTS
       </h2>
+
+      {/* Floating astronaut (background layer, behind the cards) */}
+      <div ref={astro} className="sl-astro" aria-hidden="true">
+        <div className="sl-astro-mouse">
+          <img className="sl-astro-img" src={astronautImg} alt="" draggable="false" />
+        </div>
+      </div>
 
       <div ref={track} className="sl-track">
         {SLIDES.map((s, i) => (
@@ -184,7 +247,8 @@ export default function Slide() {
 /* ---------- Styles (scoped by sl- prefix) ---------- */
 const css = `
 .sl-root{
-  position:relative; height:100vh; overflow:hidden;
+  --top:18vh; --yk:1;
+  position:relative; height:100vh; height:100svh; overflow:hidden;
   background:
     radial-gradient(60% 50% at 15% 30%, #3a2a7a55, transparent 70%),
     radial-gradient(50% 50% at 85% 70%, #1f3a8a44, transparent 70%),
@@ -209,12 +273,42 @@ const css = `
   color:transparent; background:linear-gradient(180deg,#8f7bff55 0%, #6a4bd01f 60%, transparent 100%);
   -webkit-background-clip:text; background-clip:text; user-select:none; pointer-events:none;
 }
+/* ---- floating astronaut ---- */
+.sl-astro{
+  position:absolute; top:24vh; left:0; z-index:0; /* z-index:2 = قدّام الكروت */
+  width:clamp(110px,min(18vw,32vh),300px); pointer-events:none; will-change:transform;
+}
+/* soft glow behind him so he blends into the nebula */
+.sl-astro::before{
+  content:""; position:absolute; inset:-25%; z-index:-1; border-radius:50%;
+  background:radial-gradient(closest-side, #8f7bff40, #4a6dff1a 55%, transparent 75%);
+  filter:blur(10px);
+}
+/* mouse parallax, same --mx/--my variables the hero uses */
+.sl-astro-mouse{
+  translate:calc(var(--mx) * -22px) calc(var(--my) * -22px);
+  transition:translate .4s ease-out;
+}
+/* zero-gravity drift: slow wander + tumble */
+.sl-astro-img{
+  display:block; width:100%; height:auto;
+  transform-origin:50% 45%;
+  animation:sl-astro-float 16s ease-in-out infinite;
+  filter:drop-shadow(0 0 22px #8f7bff66) drop-shadow(0 24px 30px #000a);
+}
+@keyframes sl-astro-float{
+  0%   { transform:translate(0,0) rotate(-8deg) scale(1); }
+  25%  { transform:translate(22px,-30px) rotate(5deg) scale(1.03); }
+  50%  { transform:translate(-16px,-52px) rotate(12deg) scale(1.05); }
+  75%  { transform:translate(-26px,-16px) rotate(-3deg) scale(1.02); }
+  100% { transform:translate(0,0) rotate(-8deg) scale(1); }
+}
 .sl-track{
   position:absolute; inset:0; display:flex; align-items:flex-start; gap:clamp(60px,12vw,200px);
-  padding:0 14vw; width:max-content; will-change:transform;
+  padding:0 14vw; width:max-content; will-change:transform; z-index:1;
 }
 .sl-card{
-  position:relative; flex:none; width:clamp(200px,20vw,290px); margin-top:calc(18vh + var(--y));
+  position:relative; flex:none; width:clamp(150px,min(20vw,34vh),290px); margin-top:calc(var(--top) + var(--y) * var(--yk));
   text-align:center; will-change:transform; 
 }
 .sl-frame{
@@ -236,9 +330,16 @@ const css = `
 }
 .sl-progress{position:absolute; left:0; bottom:0; width:100%; height:3px; background:linear-gradient(90deg,#8f7bff,#6fc0ff); transform:scaleX(0); transform-origin:left}
 .sl-marks{position:absolute; left:0; right:0; bottom:46px; display:flex; justify-content:space-around; font-size:clamp(40px,6vw,76px); font-weight:700; color:#ffffff0f; pointer-events:none}
-@media (max-width:640px){ .sl-card{width:62vw} .sl-track{gap:14vw} }
+@media (max-width:640px){
+  .sl-card{width:min(62vw,36vh)} .sl-track{gap:14vw}
+  .sl-astro{width:clamp(100px,34vw,170px)}
+}
+/* شاشات قصيرة (موبايل landscape / لابتوب صغير): قلل الإزاحة الرأسية عشان الكروت ماتتقصش */
+@media (max-height:700px){ .sl-root{--yk:.7} }
+@media (max-height:520px){ .sl-root{--top:8vh; --yk:.4} .sl-ghost{top:2vh} .sl-marks{display:none} }
 @media (prefers-reduced-motion: reduce){
   .sl-root{height:auto; overflow-x:auto}
   .sl-track{position:relative; padding-bottom:80px}
+  .sl-astro{left:6vw}
 }
 `;

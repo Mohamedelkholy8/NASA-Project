@@ -10,7 +10,7 @@ function Hero() {
           <span>THe magical Space </span>
         </h1>
         <p className="normalText">
-          Explore the secrets of space. NanoX helps you to check <br />
+          Explore the secrets of space. Accioverse helps you to check <br />
           space galactics.
         </p>
         <div className="center-btn">
