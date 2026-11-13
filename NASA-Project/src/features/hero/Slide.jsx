@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import astronautImg from "../../../assets/img/space-research.png";
+import vikingImg from "../../../assets/img/viking-launch.jpg";
 
 gsap.registerPlugin(ScrollTrigger);
 // على الموبايل: ماتعملش refresh كل ما شريط العنوان يطلع/ينزل (بيعمل نط في الـ pin)
@@ -11,15 +12,15 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 
 /* ---------- Content: edit freely. Add `image: "/your.jpg"` to use a photo ---------- */
 const SLIDES = [
-  { title: "Blue Horizon", meta: "Earth orbit · 400 km", hue: 205, planet: "earth", y: 0, rot: -3 },
-  { title: "Violet Nebula", meta: "Orion arm · 1,300 ly", hue: 275, planet: "nebula", y: 190, rot: 2 },
-  { title: "The Lunar Dunk", meta: "Sea of Tranquility · 1 shot", hue: 20, planet: "moon", y: -10, rot: 3 },
-  { title: "Red Giant", meta: "Betelgeuse · 700 ly", hue: 8, planet: "star", y: 170, rot: -2 },
-  { title: "Ringed World", meta: "Saturn · 9.5 AU", hue: 40, planet: "ring", y: 10, rot: 3 },
-  { title: "Deep Field", meta: "13 billion years back", hue: 250, planet: "galaxy", y: 180, rot: -3 },
+  // ---- Mars ----
+  { group: "Mars", title: "Viking 1 Lander", meta: "Chryse Planitia · 1976", hue: 10, planet: "mars", image: vikingImg, y: 0, rot: -3 },
+  { group: "Mars", title: "Kepler", meta: "Space telescope · 2009", hue: 25, planet: "mars", y: 190, rot: 2 },
+  { group: "Mars", title: "Pioneer 10", meta: "Deep space probe · 1972", hue: 0, planet: "mars", y: -10, rot: 3 },
+  // ---- Moon ----
+  { group: "Moon", title: "Lunar Roving Vehicles (LRVs)", meta: "Apollo 15 · 16 · 17", hue: 215, planet: "moon", y: 170, rot: -2 },
 ];
 
-const TICKS = ["10", "20", "30", "40", "50", "60"]; // distance markers on the baseline
+const TICKS = ["10", "20", "30", "40"]; // distance markers on the baseline
 
 /* ---------- Pure-CSS artwork so the component works with no assets ---------- */
 function Art({ planet, hue }) {
@@ -43,6 +44,7 @@ function Art({ planet, hue }) {
     earth: { background: `radial-gradient(circle at 30% 30%, #8fd0ff, #1b5fb4 45%, #08203f 80%)`, boxShadow: "0 0 60px #4aa8ff88" },
     nebula: { background: `radial-gradient(circle at 50% 50%, #e7b3ff, #8a3ffc55 40%, transparent 70%)`, filter: "blur(6px)" },
     moon: { background: `radial-gradient(circle at 35% 30%, #f1f1ee, #9a9aa3 55%, #3a3a46 100%)`, boxShadow: "0 0 50px #ffffff33" },
+    mars: { background: `radial-gradient(circle at 35% 30%, #ffb38a, #c1440e 55%, #3b1305 100%)`, boxShadow: "0 0 60px #ff6a3d66" },
     star: { background: `radial-gradient(circle at 40% 35%, #ffd2a0, #ff5a2e 50%, #4a0d08 90%)`, boxShadow: "0 0 90px #ff5a2eaa" },
     ring: { background: `radial-gradient(circle at 35% 30%, #ffe3a8, #c48a3a 55%, #3a2410 100%)`, width: "52%" },
     galaxy: { background: `conic-gradient(from 0deg, #0000, #b8a1ff88, #0000, #6fc0ff88, #0000)`, filter: "blur(3px)" },
@@ -214,7 +216,7 @@ export default function Slide() {
         {SLIDES.map((s, i) => (
           <article
             key={s.title}
-            className="sl-card"
+            className={`sl-card sl-${s.group.toLowerCase()}`}
             data-rot={s.rot}
             style={{ "--y": `${s.y}px`, "--h": s.hue, transform: `rotate(${s.rot}deg)` }}
           >
@@ -223,7 +225,9 @@ export default function Slide() {
                 {s.image ? <img src={s.image} alt={s.title} /> : <Art planet={s.planet} hue={s.hue} />}
               </div>
             </div>
-            <h3>{s.title}</h3>
+            <h3>
+              <span className="sl-group">{s.group} :</span> {s.title}
+            </h3>
             <p>{s.meta}</p>
           </article>
         ))}
@@ -316,9 +320,16 @@ const css = `
   background:linear-gradient(135deg, #e9e4ff, #8f7bff 35%, #4a6dff 65%, #d9f1ff);
   box-shadow:0 0 40px hsl(var(--h) 90% 60% / .35), 0 25px 60px #000a;
 }
+/* Mars cards: frame in Mars colours */
+.sl-mars .sl-frame{
+  background:linear-gradient(135deg, #ffd9bd, #e8693a 35%, #b5340f 65%, #ffb48a);
+  box-shadow:0 0 40px #ff6a3d59, 0 25px 60px #000a;
+}
+.sl-mars .sl-group{color:#ff8a5c}
 .sl-art{position:relative; width:100%; height:100%; border-radius:10px; overflow:hidden; background:#0a0818}
 .sl-art img{width:100%; height:100%; object-fit:cover; display:block}
 .sl-card h3{margin:22px 0 8px; font:700 14px/1.3 "Times New Roman",Georgia,serif; letter-spacing:.14em; text-transform:uppercase}
+.sl-group{display:block; margin-bottom:6px; color:#8f7bff; letter-spacing:.2em}
 .sl-card p{margin:0; font-size:11px; letter-spacing:.12em; color:#a9a4c8}
 .sl-end{flex:none; width:10vw}
 .sl-ruler{position:absolute; left:0; right:0; bottom:0; height:30px}
