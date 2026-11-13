@@ -7,6 +7,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import astronautImg from "../../../assets/img/space-research.png";
 import vikingImg from "../../../assets/img/viking-launch.jpg";
+import pioneerCardImg from "../../../assets/img/pioneerCard.jpeg";
 
 gsap.registerPlugin(ScrollTrigger);
 // على الموبايل: ماتعملش refresh كل ما شريط العنوان يطلع/ينزل (بيعمل نط في الـ pin)
@@ -43,6 +44,7 @@ const SLIDES = [
     meta: "Deep space probe · 1972",
     hue: 0,
     planet: "mars",
+    image: pioneerCardImg,
     y: -10,
     rot: 3,
   },
@@ -318,7 +320,11 @@ export default function Slide() {
                 transform: `rotate(${s.rot}deg)`,
               }}
             >
-              {i === 0 && !isDone ? ( // solved card = no link, can't be opened again
+              {s.id === "pioneer-10" ? (
+                <Link className="sl-card-link" to="/pioneer">
+                  {card}
+                </Link>
+              ) : i === 0 && !isDone ? ( // solved card = no link, can't be opened again
                 <Link className="sl-card-link" to="/mars1">
                   {card}
                 </Link>
