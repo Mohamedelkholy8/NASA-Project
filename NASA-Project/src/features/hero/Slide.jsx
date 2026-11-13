@@ -1,6 +1,7 @@
 // Slides.jsx
 // npm i gsap
 import { useLayoutEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import astronautImg from "../../../assets/img/space-research.png";
@@ -213,24 +214,38 @@ export default function Slide() {
       </div>
 
       <div ref={track} className="sl-track">
-        {SLIDES.map((s, i) => (
-          <article
-            key={s.title}
-            className={`sl-card sl-${s.group.toLowerCase()}`}
-            data-rot={s.rot}
-            style={{ "--y": `${s.y}px`, "--h": s.hue, transform: `rotate(${s.rot}deg)` }}
-          >
-            <div className="sl-frame">
-              <div className="sl-art">
-                {s.image ? <img src={s.image} alt={s.title} /> : <Art planet={s.planet} hue={s.hue} />}
+        {SLIDES.map((s, i) => {
+          const card = (
+            <>
+              <div className="sl-frame">
+                <div className="sl-art">
+                  {s.image ? <img src={s.image} alt={s.title} /> : <Art planet={s.planet} hue={s.hue} />}
+                </div>
               </div>
-            </div>
-            <h3>
-              <span className="sl-group">{s.group} :</span> {s.title}
-            </h3>
-            <p>{s.meta}</p>
-          </article>
-        ))}
+              <h3>
+                <span className="sl-group">{s.group} :</span> {s.title}
+              </h3>
+              <p>{s.meta}</p>
+            </>
+          );
+
+          return (
+            <article
+              key={s.title}
+              className={`sl-card sl-${s.group.toLowerCase()}`}
+              data-rot={s.rot}
+              style={{ "--y": `${s.y}px`, "--h": s.hue, transform: `rotate(${s.rot}deg)` }}
+            >
+              {i === 0 ? (
+                <Link className="sl-card-link" to="/mars1">
+                  {card}
+                </Link>
+              ) : (
+                card
+              )}
+            </article>
+          );
+        })}
         <div className="sl-end" />
       </div>
 
@@ -315,6 +330,7 @@ const css = `
   position:relative; flex:none; width:clamp(150px,min(20vw,34vh),290px); margin-top:calc(var(--top) + var(--y) * var(--yk));
   text-align:center; will-change:transform; 
 }
+.sl-card-link{display:block; color:inherit; text-decoration:none}
 .sl-frame{
   padding:5px; border-radius:14px; aspect-ratio:3/4;
   background:linear-gradient(135deg, #e9e4ff, #8f7bff 35%, #4a6dff 65%, #d9f1ff);
