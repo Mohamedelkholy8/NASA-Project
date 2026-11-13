@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 import earthImg from "../../../assets/img/earth.png";
 import globeImg from "../../../assets/img/globe.png";
 
-const VIDEO_SRC = "/space-video.mp4";
+const YOUTUBE_ID = "cCHs3uhRMbY";
+const VIDEO_URL = `https://www.youtube.com/embed/${YOUTUBE_ID}?autoplay=1&rel=0&modestbranding=1`;
 
 function Hero() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
@@ -39,11 +40,12 @@ function Hero() {
           Explore <br />
           <span>THe magical Space </span>
         </h1>
-        <p className="bigText">
-          where forgotten stories comeback to life
-        </p>
+        <p className="bigText">where forgotten stories comeback to life</p>
         <div className="center-btn">
-          <button className="btn normalText" onClick={() => setIsVideoOpen(true)}>
+          <button
+            className="btn normalText"
+            onClick={() => setIsVideoOpen(true)}
+          >
             <span> &gt; </span>Discover how it works
           </button>
         </div>
@@ -71,7 +73,12 @@ function Hero() {
               onClick={(e) => e.stopPropagation()}
               style={{ boxShadow: "none" }}
             >
-              <video src={VIDEO_SRC} controls autoPlay playsInline />
+              <iframe
+                src={VIDEO_URL}
+                title="How it works"
+                allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                allowFullScreen
+              />
               <button
                 className="video-close"
                 onClick={closeVideoAndScroll}
@@ -83,7 +90,6 @@ function Hero() {
           </div>,
           document.body,
         )}
-        
     </div>
   );
 }
