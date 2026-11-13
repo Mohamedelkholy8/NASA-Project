@@ -8,13 +8,15 @@ function HomePage() {
   useParallax();
 
   return (
-    <main className="home-page">
+    <main className="home-page" >
       <section className="home-hero">
         <SpaceBackground />
         <Header />
         <Hero />
       </section>
-      <Slide />
+      <section id="slider">
+        <Slide />
+      </section>
     </main>
   );
 }
