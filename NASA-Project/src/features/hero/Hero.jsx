@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import earthImg from "../../../assets/img/earth.png";
 import globeImg from "../../../assets/img/globe.png";
 
-// Put your video inside the /public folder and write its path here
 const VIDEO_SRC = "/space-video.mp4";
 
 function Hero() {

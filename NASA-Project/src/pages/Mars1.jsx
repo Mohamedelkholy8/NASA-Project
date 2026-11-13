@@ -1,30 +1,107 @@
-import { useState } from 'react';
-import img1 from '../../assets/img/mars1.jpeg';
-import img2 from '../../assets/img/mars2.jpeg';
-import img3 from '../../assets/img/mars3.jpeg';
-import img4 from '../../assets/img/mars4.jpeg';
-import img5 from '../../assets/img/mars5.jpeg';
+import { useRef, useState } from "react";
+import img1 from "../../assets/img/mars1.jpeg";
+import img2 from "../../assets/img/mars2.jpeg";
+import img3 from "../../assets/img/mars3.jpeg";
+import img4 from "../../assets/img/mars4.jpeg";
+import img5 from "../../assets/img/mars5.jpeg";
+import { Navigate } from "react-router-dom";
+import Quiz from "../features/quiz/Quiz";
+import { isQuizDone } from "../utils/quizProgress";
 
 /* Edit the alt text / captions here to describe each photo. */
 const photos = {
-  hero:    { src: img1, alt: 'Martian landscape under a dusty sky' },
-  orbiter: { src: img2, alt: 'Mars seen from orbit' },
-  lander:  { src: img3, alt: 'The Viking 1 Lander on the Martian surface' },
-  surface: { src: img4, alt: 'Rocks and soil on the surface of Mars', caption: 'The ground around the Lander, photographed from the surface.' },
-  banner:  { src: img5, alt: 'Wide view of the Martian terrain', caption: 'Mars: a cold desert that may once have had flowing water.' },
+  hero: { src: img1, alt: "Martian landscape under a dusty sky" },
+  orbiter: { src: img2, alt: "Mars seen from orbit" },
+  lander: { src: img3, alt: "The Viking 1 Lander on the Martian surface" },
+  surface: {
+    src: img4,
+    alt: "Rocks and soil on the surface of Mars",
+    caption: "The ground around the Lander, photographed from the surface.",
+  },
+  banner: {
+    src: img5,
+    alt: "Wide view of the Martian terrain",
+    caption: "Mars: a cold desert that may once have had flowing water.",
+  },
 };
 
 const milestones = [
-  { date: '20 Aug 1975', title: 'Journey to the Red Planet', text: 'Viking 1 leaves Earth and travels through space for about 10 months.' },
-  { date: '19 Jun 1976', title: 'Orbital arrival', text: 'Reaches Mars orbit. The Orbiter takes pictures and looks for a safe place for its partner, the Lander.' },
-  { date: '20 Jul 1976', title: 'The big landing', text: 'Lands safely on Chryse Planitia, the Golden Plain, and sends the first pictures ever taken from the Martian surface.' },
-  { date: '11 Nov 1982', title: 'End of an amazing journey', text: 'Planned for only 90 days, the Lander works for over 6 years before sending its final message to Earth.' },
+  {
+    date: "20 Aug 1975",
+    title: "Journey to the Red Planet",
+    text: "Viking 1 leaves Earth and travels through space for about 10 months.",
+  },
+  {
+    date: "19 Jun 1976",
+    title: "Orbital arrival",
+    text: "Reaches Mars orbit. The Orbiter takes pictures and looks for a safe place for its partner, the Lander.",
+  },
+  {
+    date: "20 Jul 1976",
+    title: "The big landing",
+    text: "Lands safely on Chryse Planitia, the Golden Plain, and sends the first pictures ever taken from the Martian surface.",
+  },
+  {
+    date: "11 Nov 1982",
+    title: "End of an amazing journey",
+    text: "Planned for only 90 days, the Lander works for over 6 years before sending its final message to Earth.",
+  },
 ];
 
 const hotspots = [
-  { x: '24%', y: '72%', tag: 'Robotic sampler arm', title: 'Let’s search for life', text: 'A robotic arm dug into the Martian soil, collected small samples, and placed them inside an onboard science laboratory. No clear evidence of life was found.', metric: '0 signs', label: 'Clear evidence of living things' },
-  { x: '78%', y: '15%', tag: 'Meteorology boom', title: 'What is Mars really like?', text: 'Built as a weather station to measure temperature, wind speed, and air pressure. It found a freezing world where temperatures drop sharply before sunrise.', metric: '−86°C', label: 'Surface temperature before sunrise' },
-  { x: '50%', y: '49%', tag: 'Imaging system', title: 'A new world through its eyes', text: 'The Orbiter took thousands of pictures from space while the Lander photographed the ground, rocks, and nearby landscape, revealing signs of ancient rivers and floods.', metric: '6+ years', label: 'On the surface, against a 90-day plan' },
+  {
+    x: "24%",
+    y: "72%",
+    tag: "Robotic sampler arm",
+    title: "Let’s search for life",
+    text: "A robotic arm dug into the Martian soil, collected small samples, and placed them inside an onboard science laboratory. No clear evidence of life was found.",
+    metric: "0 signs",
+    label: "Clear evidence of living things",
+  },
+  {
+    x: "78%",
+    y: "15%",
+    tag: "Meteorology boom",
+    title: "What is Mars really like?",
+    text: "Built as a weather station to measure temperature, wind speed, and air pressure. It found a freezing world where temperatures drop sharply before sunrise.",
+    metric: "−86°C",
+    label: "Surface temperature before sunrise",
+  },
+  {
+    x: "50%",
+    y: "49%",
+    tag: "Imaging system",
+    title: "A new world through its eyes",
+    text: "The Orbiter took thousands of pictures from space while the Lander photographed the ground, rocks, and nearby landscape, revealing signs of ancient rivers and floods.",
+    metric: "6+ years",
+    label: "On the surface, against a 90-day plan",
+  },
+];
+
+const quiz = [
+  {
+    q: "What was the main mission of Viking 1?",
+    options: [
+      "To search for signs of life on Mars",
+      "To bring humans to Mars",
+      "To study Jupiter",
+    ],
+    answer: 0,
+  },
+  {
+    q: "What were the two main parts of Viking 1?",
+    options: ["Rocket and Satellite", "Orbiter and Lander", "Camera and Robot"],
+    answer: 1,
+  },
+  {
+    q: "Did Viking 1 find clear evidence of life on Mars?",
+    options: [
+      "Yes, it found living creatures",
+      "No, it found no clear evidence of life",
+      "It never studied the soil",
+    ],
+    answer: 1,
+  },
 ];
 
 const css = `
@@ -139,58 +216,113 @@ export default function Mars1() {
   const hs = hotspots[h];
   const ms = milestones[m];
 
+  const section = useRef(null);
+  // checked once on page load (not live), so the quiz can still show its
+  // success message before it sends the user back to the slider
+  const [alreadyDone] = useState(() => isQuizDone("viking-1"));
+  // adding smooth scroll
+  function handleScroll(e) {
+    e.preventDefault();
+    section.current.scrollIntoView({ behavior: "smooth" });
+  }
+  // quiz already solved -> this page is closed, go back to the slider
+  if (alreadyDone) {
+    return <Navigate to="/" replace state={{ scrollTo: "slider" }} />;
+  }
+
   return (
     <div className="vk" id="top">
       <style>{css}</style>
 
-      
-
       <main>
         <div className="hero">
-          <img className="hero-img" src={photos.hero.src} alt={photos.hero.alt} />
+          <img
+            className="hero-img"
+            src={photos.hero.src}
+            alt={photos.hero.alt}
+          />
           <div className="wrap">
             <h1>Could Mars hold life?</h1>
-            <p className="sub">Scientists had the same question, so they sent Viking 1.</p>
-            <a className="btn" href="#story">Explore the mission</a>
+            <p className="sub">
+              Scientists had the same question, so they sent Viking 1.
+            </p>
+            <a className="btn scroll" href="#" onClick={handleScroll}>
+              Explore the mission
+            </a>
           </div>
         </div>
 
         <div className="facts">
           <div className="wrap">
             <dl>
-              <div><dt>Launched</dt><dd>20 Aug 1975</dd></div>
-              <div><dt>Landed on Mars</dt><dd>20 Jul 1976</dd></div>
-              <div><dt>Worked for</dt><dd>6+ years</dd></div>
-              <div><dt>Last message</dt><dd>11 Nov 1982</dd></div>
+              <div>
+                <dt>Launched</dt>
+                <dd>20 Aug 1975</dd>
+              </div>
+              <div>
+                <dt>Landed on Mars</dt>
+                <dd>20 Jul 1976</dd>
+              </div>
+              <div>
+                <dt>Worked for</dt>
+                <dd>6+ years</dd>
+              </div>
+              <div>
+                <dt>Last message</dt>
+                <dd>11 Nov 1982</dd>
+              </div>
             </dl>
           </div>
         </div>
 
-        <section id="story">
+        <section id="story" ref={section}>
           <div className="wrap">
             <h2>One mission, two machines working together</h2>
-            <p className="lede">Scientists wanted to know if Mars could support life. NASA built Viking 1 as a team: an Orbiter above and a Lander below. Planned for 90 days, it kept working for more than six years and helped prepare every Mars mission that followed.</p>
+            <p className="lede">
+              Scientists wanted to know if Mars could support life. NASA built
+              Viking 1 as a team: an Orbiter above and a Lander below. Planned
+              for 90 days, it kept working for more than six years and helped
+              prepare every Mars mission that followed.
+            </p>
             <div className="pair">
               <div>
-                <img src={photos.orbiter.src} alt={photos.orbiter.alt} loading="lazy" />
+                <img
+                  src={photos.orbiter.src}
+                  alt={photos.orbiter.alt}
+                  loading="lazy"
+                />
                 <div className="txt">
                   <p className="role">The Orbiter</p>
                   <h3>Eyes from above</h3>
-                  <p>Circled Mars, took thousands of pictures from space, and scouted a safe landing site for its partner.</p>
+                  <p>
+                    Circled Mars, took thousands of pictures from space, and
+                    scouted a safe landing site for its partner.
+                  </p>
                 </div>
               </div>
               <div>
-                <img src={photos.lander.src} alt={photos.lander.alt} loading="lazy" />
+                <img
+                  src={photos.lander.src}
+                  alt={photos.lander.alt}
+                  loading="lazy"
+                />
                 <div className="txt">
                   <p className="role">The Lander</p>
                   <h3>Boots on the ground</h3>
-                  <p>Touched down on Chryse Planitia to test Martian soil, track the weather, and take the first photographs from the surface.</p>
+                  <p>
+                    Touched down on Chryse Planitia to test Martian soil, track
+                    the weather, and take the first photographs from the
+                    surface.
+                  </p>
                 </div>
               </div>
             </div>
             <div className="verdict">
               <h3>The verdict on life</h3>
-              <p>The onboard biology tests found no clear evidence of living things, but they uncovered a complex, ancient world.</p>
+              <p>
+                The onboard biology tests found no clear evidence of living
+                things, but they uncovered a complex, ancient world.
+              </p>
             </div>
           </div>
         </section>
@@ -198,16 +330,26 @@ export default function Mars1() {
         <section id="journey" className="tl-band">
           <div className="wrap">
             <h2>90 days planned. Over six years achieved.</h2>
-            <p className="lede">Select a moment to follow Viking 1 from launch to its final message.</p>
+            <p className="lede">
+              Select a moment to follow Viking 1 from launch to its final
+              message.
+            </p>
             <div className="tl">
-              <div className="tl-track" role="tablist" aria-label="Mission milestones">
-                <div className="tl-fill" style={{ width: `${(m / (milestones.length - 1)) * 100}%` }} />
+              <div
+                className="tl-track"
+                role="tablist"
+                aria-label="Mission milestones"
+              >
+                <div
+                  className="tl-fill"
+                  style={{ width: `${(m / (milestones.length - 1)) * 100}%` }}
+                />
                 {milestones.map((item, i) => (
                   <button
                     key={item.date}
                     role="tab"
                     aria-selected={i === m}
-                    className={`tl-btn${i < m ? ' done' : ''}`}
+                    className={`tl-btn${i < m ? " done" : ""}`}
                     onClick={() => setM(i)}
                   >
                     {item.date}
@@ -218,20 +360,33 @@ export default function Mars1() {
                 <div className="when">{ms.date}</div>
                 <div>
                   <h3>{ms.title}</h3>
-                  <p className="lede" style={{ marginTop: 10 }}>{ms.text}</p>
+                  <p className="lede" style={{ marginTop: 10 }}>
+                    {ms.text}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </section>
-        <iframe className='w-[100vw] h-[80vh]' src="https://eyes.nasa.gov/apps/solar-system/#/mars/distance?to=earth&rate=0&time=1976-07-20T11%3A53%3A30.486+00%3A00" allowfullscreen ></iframe>
+        <iframe
+          className="w-[100vw] h-[80vh]"
+          src="https://eyes.nasa.gov/apps/solar-system/#/mars/distance?to=earth&rate=0&time=1976-07-20T11%3A53%3A30.486+00%3A00"
+          allowFullScreen
+        ></iframe>
         <section id="lab">
           <div className="wrap">
             <h2>Small craft, extraordinary reach</h2>
-            <p className="lede">Tap a numbered point to see how Viking 1 scooped soil, measured freezing winds, and photographed a new world.</p>
+            <p className="lede">
+              Tap a numbered point to see how Viking 1 scooped soil, measured
+              freezing winds, and photographed a new world.
+            </p>
             <div className="lab">
               <div className="stage">
-                <svg viewBox="0 0 600 400" role="img" aria-label="Simplified drawing of the Viking 1 Lander">
+                <svg
+                  viewBox="0 0 600 400"
+                  role="img"
+                  aria-label="Simplified drawing of the Viking 1 Lander"
+                >
                   <defs>
                     <linearGradient id="vkg" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0" stopColor="#3B2A24" />
@@ -239,21 +394,52 @@ export default function Mars1() {
                     </linearGradient>
                   </defs>
                   <rect width="600" height="400" fill="url(#vkg)" />
-                  <path d="M0 330 Q150 300 300 322 T600 312 V400 H0Z" fill="#7A4430" />
-                  <g stroke="#E9D8C8" strokeWidth="5" fill="none" strokeLinecap="round">
+                  <path
+                    d="M0 330 Q150 300 300 322 T600 312 V400 H0Z"
+                    fill="#7A4430"
+                  />
+                  <g
+                    stroke="#E9D8C8"
+                    strokeWidth="5"
+                    fill="none"
+                    strokeLinecap="round"
+                  >
                     <path d="M230 250 L170 340 M370 250 L430 340 M300 262 V345" />
-                    <path d="M165 340 h20 M425 340 h20 M290 346 h22" strokeWidth="7" />
+                    <path
+                      d="M165 340 h20 M425 340 h20 M290 346 h22"
+                      strokeWidth="7"
+                    />
                   </g>
-                  <path d="M220 170 L250 130 H350 L380 170 L380 250 H220Z" fill="#CFC3B8" />
+                  <path
+                    d="M220 170 L250 130 H350 L380 170 L380 250 H220Z"
+                    fill="#CFC3B8"
+                  />
                   <path d="M250 130 H350 L380 170 H220Z" fill="#E9DED4" />
-                  <circle cx="300" cy="195" r="26" fill="#2A201C" stroke="#E8A66A" strokeWidth="4" />
-                  <g stroke="#E9D8C8" strokeWidth="5" fill="none" strokeLinecap="round">
+                  <circle
+                    cx="300"
+                    cy="195"
+                    r="26"
+                    fill="#2A201C"
+                    stroke="#E8A66A"
+                    strokeWidth="4"
+                  />
+                  <g
+                    stroke="#E9D8C8"
+                    strokeWidth="5"
+                    fill="none"
+                    strokeLinecap="round"
+                  >
                     <path d="M220 210 L150 250 L120 290" />
                     <path d="M370 130 L420 70 L470 62" />
                   </g>
                   <circle cx="120" cy="292" r="9" fill="#E8A66A" />
                   <circle cx="472" cy="62" r="7" fill="#E8A66A" />
-                  <path d="M300 130 V92 M286 92 H314" stroke="#E9D8C8" strokeWidth="5" fill="none" />
+                  <path
+                    d="M300 130 V92 M286 92 H314"
+                    stroke="#E9D8C8"
+                    strokeWidth="5"
+                    fill="none"
+                  />
                 </svg>
                 {hotspots.map((spot, i) => (
                   <button
@@ -281,7 +467,11 @@ export default function Mars1() {
               </div>
             </div>
             <figure className="shot">
-              <img src={photos.surface.src} alt={photos.surface.alt} loading="lazy" />
+              <img
+                src={photos.surface.src}
+                alt={photos.surface.alt}
+                loading="lazy"
+              />
               <figcaption>{photos.surface.caption}</figcaption>
             </figure>
           </div>
@@ -290,35 +480,61 @@ export default function Mars1() {
         <section id="mars" className="mars">
           <div className="wrap">
             <h2>A planet of possibilities</h2>
-            <p className="lede">Viking 1 measured bitter cold, wind, and air pressure, while its cameras found signs of ancient rivers and floods. Maybe Mars was very different millions of years ago.</p>
+            <p className="lede">
+              Viking 1 measured bitter cold, wind, and air pressure, while its
+              cameras found signs of ancient rivers and floods. Maybe Mars was
+              very different millions of years ago.
+            </p>
             <div className="big">
               <b>−86°C</b>
-              <p>The surface temperature just before sunrise at Chryse Planitia, the Golden Plain where Viking 1 landed.</p>
+              <p>
+                The surface temperature just before sunrise at Chryse Planitia,
+                the Golden Plain where Viking 1 landed.
+              </p>
             </div>
             <figure className="shot">
-              <img src={photos.banner.src} alt={photos.banner.alt} loading="lazy" />
+              <img
+                src={photos.banner.src}
+                alt={photos.banner.alt}
+                loading="lazy"
+              />
               <figcaption>{photos.banner.caption}</figcaption>
             </figure>
             <div className="notes">
               <div>
                 <h3>Chryse Planitia</h3>
-                <p>The first successful NASA landing on Mars, on 20 July 1976. It sent back the first pictures ever taken from the Martian surface.</p>
+                <p>
+                  The first successful NASA landing on Mars, on 20 July 1976. It
+                  sent back the first pictures ever taken from the Martian
+                  surface.
+                </p>
               </div>
               <div>
                 <h3>Ancient riverbeds</h3>
-                <p>Orbiter images showed channels that point to massive floods millions of years ago.</p>
+                <p>
+                  Orbiter images showed channels that point to massive floods
+                  millions of years ago.
+                </p>
               </div>
               <div>
                 <h3>Martian weather</h3>
-                <p>Winds, air pressure, and a freezing chill before dawn, recorded for more than six years.</p>
+                <p>
+                  Winds, air pressure, and a freezing chill before dawn,
+                  recorded for more than six years.
+                </p>
               </div>
             </div>
           </div>
         </section>
+
+        <Quiz cardId="viking-1" questions={quiz} />
       </main>
 
       <footer>
-        <div className="wrap">ACCIOverse · Planetary Journeys · Based on the NASA Viking 1 mission. Illustrations are simplified and not to scale.</div>
+        <div className="wrap">
+          ACCIOverse · Planetary Journeys · Based on the NASA Viking 1 mission.
+          Illustrations are simplified and not to scale.
+        </div>
       </footer>
     </div>
   );

@@ -2,6 +2,7 @@
 // npm i gsap
 import { useLayoutEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { resetQuizProgress, useQuizProgress } from "../../utils/quizProgress";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import astronautImg from "../../../assets/img/space-research.png";
@@ -14,11 +15,48 @@ ScrollTrigger.config({ ignoreMobileResize: true });
 /* ---------- Content: edit freely. Add `image: "/your.jpg"` to use a photo ---------- */
 const SLIDES = [
   // ---- Mars ----
-  { group: "Mars", title: "Viking 1 Lander", meta: "Chryse Planitia · 1976", hue: 10, planet: "mars", image: vikingImg, y: 0, rot: -3 },
-  { group: "Mars", title: "Kepler", meta: "Space telescope · 2009", hue: 25, planet: "mars", y: 190, rot: 2 },
-  { group: "Mars", title: "Pioneer 10", meta: "Deep space probe · 1972", hue: 0, planet: "mars", y: -10, rot: 3 },
+  {
+    id: "viking-1",
+    group: "Mars",
+    title: "Viking 1 Lander",
+    meta: "Chryse Planitia · 1976",
+    hue: 10,
+    planet: "mars",
+    image: vikingImg,
+    y: 0,
+    rot: -3,
+  },
+  {
+    id: "kepler",
+    group: "Mars",
+    title: "Kepler",
+    meta: "Space telescope · 2009",
+    hue: 25,
+    planet: "mars",
+    y: 190,
+    rot: 2,
+  },
+  {
+    id: "pioneer-10",
+    group: "Mars",
+    title: "Pioneer 10",
+    meta: "Deep space probe · 1972",
+    hue: 0,
+    planet: "mars",
+    y: -10,
+    rot: 3,
+  },
   // ---- Moon ----
-  { group: "Moon", title: "Lunar Roving Vehicles (LRVs)", meta: "Apollo 15 · 16 · 17", hue: 215, planet: "moon", y: 170, rot: -2 },
+  {
+    id: "lrv",
+    group: "Moon",
+    title: "Lunar Roving Vehicles (LRVs)",
+    meta: "Apollo 15 · 16 · 17",
+    hue: 215,
+    planet: "moon",
+    y: 170,
+    rot: -2,
+  },
 ];
 
 const TICKS = ["10", "20", "30", "40"]; // distance markers on the baseline
@@ -42,13 +80,34 @@ function Art({ planet, hue }) {
     borderRadius: "50%",
   };
   const looks = {
-    earth: { background: `radial-gradient(circle at 30% 30%, #8fd0ff, #1b5fb4 45%, #08203f 80%)`, boxShadow: "0 0 60px #4aa8ff88" },
-    nebula: { background: `radial-gradient(circle at 50% 50%, #e7b3ff, #8a3ffc55 40%, transparent 70%)`, filter: "blur(6px)" },
-    moon: { background: `radial-gradient(circle at 35% 30%, #f1f1ee, #9a9aa3 55%, #3a3a46 100%)`, boxShadow: "0 0 50px #ffffff33" },
-    mars: { background: `radial-gradient(circle at 35% 30%, #ffb38a, #c1440e 55%, #3b1305 100%)`, boxShadow: "0 0 60px #ff6a3d66" },
-    star: { background: `radial-gradient(circle at 40% 35%, #ffd2a0, #ff5a2e 50%, #4a0d08 90%)`, boxShadow: "0 0 90px #ff5a2eaa" },
-    ring: { background: `radial-gradient(circle at 35% 30%, #ffe3a8, #c48a3a 55%, #3a2410 100%)`, width: "52%" },
-    galaxy: { background: `conic-gradient(from 0deg, #0000, #b8a1ff88, #0000, #6fc0ff88, #0000)`, filter: "blur(3px)" },
+    earth: {
+      background: `radial-gradient(circle at 30% 30%, #8fd0ff, #1b5fb4 45%, #08203f 80%)`,
+      boxShadow: "0 0 60px #4aa8ff88",
+    },
+    nebula: {
+      background: `radial-gradient(circle at 50% 50%, #e7b3ff, #8a3ffc55 40%, transparent 70%)`,
+      filter: "blur(6px)",
+    },
+    moon: {
+      background: `radial-gradient(circle at 35% 30%, #f1f1ee, #9a9aa3 55%, #3a3a46 100%)`,
+      boxShadow: "0 0 50px #ffffff33",
+    },
+    mars: {
+      background: `radial-gradient(circle at 35% 30%, #ffb38a, #c1440e 55%, #3b1305 100%)`,
+      boxShadow: "0 0 60px #ff6a3d66",
+    },
+    star: {
+      background: `radial-gradient(circle at 40% 35%, #ffd2a0, #ff5a2e 50%, #4a0d08 90%)`,
+      boxShadow: "0 0 90px #ff5a2eaa",
+    },
+    ring: {
+      background: `radial-gradient(circle at 35% 30%, #ffe3a8, #c48a3a 55%, #3a2410 100%)`,
+      width: "52%",
+    },
+    galaxy: {
+      background: `conic-gradient(from 0deg, #0000, #b8a1ff88, #0000, #6fc0ff88, #0000)`,
+      filter: "blur(3px)",
+    },
   }[planet];
   return (
     <div style={base}>
@@ -56,9 +115,15 @@ function Art({ planet, hue }) {
       {planet === "ring" && (
         <div
           style={{
-            position: "absolute", left: "50%", top: "52%", width: "92%", height: "22%",
-            transform: "translate(-50%,-50%) rotate(-18deg)", borderRadius: "50%",
-            border: "5px solid #f2d79a99", boxShadow: "0 0 18px #f2d79a55",
+            position: "absolute",
+            left: "50%",
+            top: "52%",
+            width: "92%",
+            height: "22%",
+            transform: "translate(-50%,-50%) rotate(-18deg)",
+            borderRadius: "50%",
+            border: "5px solid #f2d79a99",
+            boxShadow: "0 0 18px #f2d79a55",
           }}
         />
       )}
@@ -67,6 +132,7 @@ function Art({ planet, hue }) {
 }
 
 export default function Slide() {
+  const done = useQuizProgress(); // { "viking-1": true, ... }
   const root = useRef(null);
   const track = useRef(null);
   const ghost = useRef(null);
@@ -126,7 +192,7 @@ export default function Slide() {
             scrub: 1.5,
             invalidateOnRefresh: true,
           },
-        }
+        },
       );
 
       // bobs up/down while you scroll, like swimming
@@ -188,7 +254,7 @@ export default function Slide() {
               end: "left 40%",
               scrub: true,
             },
-          }
+          },
         );
       });
 
@@ -209,7 +275,12 @@ export default function Slide() {
       {/* Floating astronaut (background layer, behind the cards) */}
       <div ref={astro} className="sl-astro" aria-hidden="true">
         <div className="sl-astro-mouse">
-          <img className="sl-astro-img" src={astronautImg} alt="" draggable="false" />
+          <img
+            className="sl-astro-img"
+            src={astronautImg}
+            alt=""
+            draggable="false"
+          />
         </div>
       </div>
 
@@ -219,7 +290,11 @@ export default function Slide() {
             <>
               <div className="sl-frame">
                 <div className="sl-art">
-                  {s.image ? <img src={s.image} alt={s.title} /> : <Art planet={s.planet} hue={s.hue} />}
+                  {s.image ? (
+                    <img src={s.image} alt={s.title} />
+                  ) : (
+                    <Art planet={s.planet} hue={s.hue} />
+                  )}
                 </div>
               </div>
               <h3>
@@ -229,20 +304,39 @@ export default function Slide() {
             </>
           );
 
+          const isDone = !!done[s.id];
+
           return (
             <article
               key={s.title}
-              className={`sl-card sl-${s.group.toLowerCase()}`}
+              className={`sl-card sl-${s.group.toLowerCase()}${isDone ? " sl-done" : ""}`}
               data-rot={s.rot}
-              style={{ "--y": `${s.y}px`, "--h": s.hue, transform: `rotate(${s.rot}deg)` }}
+              aria-disabled={isDone || undefined}
+              style={{
+                "--y": `${s.y}px`,
+                "--h": s.hue,
+                transform: `rotate(${s.rot}deg)`,
+              }}
             >
-              {i === 0 ? (
+              {i === 0 && !isDone ? ( // solved card = no link, can't be opened again
                 <Link className="sl-card-link" to="/mars1">
                   {card}
                 </Link>
               ) : (
                 card
               )}
+              {/* Star: outline = quiz not solved yet, filled = solved */}
+              <span
+                className={`sl-star${isDone ? " on" : ""}`}
+                role="img"
+                aria-label={
+                  isDone ? "Quiz completed" : "Quiz not completed yet"
+                }
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.6l-5.9 3.1 1.2-6.6L2.5 9.5l6.6-.9z" />
+                </svg>
+              </span>
             </article>
           );
         })}
@@ -252,13 +346,17 @@ export default function Slide() {
       {/* Distance ruler along the bottom */}
       <div className="sl-ruler" aria-hidden="true">
         <div className="sl-ruler-ticks" />
-        
       </div>
       <div className="sl-marks" aria-hidden="true">
         {TICKS.map((t) => (
           <span key={t}>{t}</span>
         ))}
       </div>
+
+      {/* Testing only: delete this button before you hand in the project */}
+      <button type="button" className="sl-reset" onClick={resetQuizProgress}>
+        Reset quiz
+      </button>
     </section>
   );
 }
@@ -331,6 +429,25 @@ const css = `
   text-align:center; will-change:transform; 
 }
 .sl-card-link{display:block; color:inherit; text-decoration:none}
+/* ---- quiz star (top-right corner of each card) ---- */
+.sl-star{
+  position:absolute; top:-18px; right:-18px; z-index:3; width:46px; height:46px;
+  display:grid; place-items:center; border-radius:50%;
+  background:#0a0818d9; border:1.5px solid #ffffff2e; backdrop-filter:blur(4px);
+  pointer-events:none;
+}
+.sl-star svg{width:26px; height:26px; fill:transparent; stroke:#ffffff80; stroke-width:1.6; stroke-linejoin:round; transition:fill .5s, stroke .5s, filter .5s}
+.sl-star.on{border-color:#ffc94d99; box-shadow:0 0 22px #ffc94d66; animation:sl-star-pop .7s cubic-bezier(.2,1.6,.4,1) both}
+.sl-star.on svg{fill:#ffc94d; stroke:#ffe29a; filter:drop-shadow(0 0 6px #ffc94dcc)}
+@keyframes sl-star-pop{0%{transform:scale(.4) rotate(-40deg)} 100%{transform:scale(1) rotate(0)}}
+/* solved card -> grayscale (the star stays golden: it is outside .sl-frame) */
+.sl-frame{transition:filter .6s ease}
+.sl-card.sl-done .sl-frame{filter:grayscale(1) brightness(.85)}
+.sl-card.sl-done, .sl-card.sl-done *{cursor:not-allowed}
+.sl-card.sl-done{user-select:none}
+.sl-card.sl-done .sl-star{pointer-events:auto}
+.sl-card.sl-done .sl-group{color:#8b8a99}
+.sl-card.sl-done h3, .sl-card.sl-done p{opacity:.7}
 .sl-frame{
   padding:5px; border-radius:14px; aspect-ratio:3/4;
   background:linear-gradient(135deg, #e9e4ff, #8f7bff 35%, #4a6dff 65%, #d9f1ff);
@@ -348,6 +465,9 @@ const css = `
 .sl-group{display:block; margin-bottom:6px; color:#8f7bff; letter-spacing:.2em}
 .sl-card p{margin:0; font-size:11px; letter-spacing:.12em; color:#a9a4c8}
 .sl-end{flex:none; width:10vw}
+.sl-reset{position:absolute; left:16px; bottom:44px; z-index:5; cursor:pointer; padding:8px 14px; border-radius:999px;
+  border:1px solid #ffffff40; background:#0a0818cc; color:#fff; font:500 12px "Roboto Mono",monospace}
+.sl-reset:hover{background:#ffffff22}
 .sl-ruler{position:absolute; left:0; right:0; bottom:0; height:30px}
 .sl-ruler-ticks{
   position:absolute; inset:0;
