@@ -16,6 +16,7 @@ function HomePage() {
       </section>
       <section id="slider">
         <Slide />
+        
       </section>
     </main>
   );

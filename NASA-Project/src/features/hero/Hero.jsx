@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import earthImg from "../../../assets/img/earth.png";
 import globeImg from "../../../assets/img/globe.png";
@@ -9,12 +9,20 @@ const VIDEO_SRC = "/space-video.mp4";
 function Hero() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
+  const closeVideoAndScroll = useCallback(() => {
+    document.body.style.overflow = "";
+    setIsVideoOpen(false);
+    requestAnimationFrame(() => {
+      document.getElementById("slider")?.scrollIntoView({ behavior: "smooth" });
+    });
+  }, []);
+
   // While the popup is open: close on Escape + stop the page from scrolling
   useEffect(() => {
     if (!isVideoOpen) return;
 
     const handleKeyDown = (e) => {
-      if (e.key === "Escape") setIsVideoOpen(false);
+      if (e.key === "Escape") closeVideoAndScroll();
     };
     document.addEventListener("keydown", handleKeyDown);
     document.body.style.overflow = "hidden";
@@ -23,7 +31,7 @@ function Hero() {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [isVideoOpen]);
+  }, [closeVideoAndScroll, isVideoOpen]);
 
   return (
     <div className="hero-section">
@@ -54,17 +62,21 @@ function Hero() {
         createPortal(
           <div
             className="video-overlay"
-            onClick={() => setIsVideoOpen(false)}
+            onClick={closeVideoAndScroll}
             role="dialog"
             aria-modal="true"
             aria-label="How it works video"
           >
             {/* stopPropagation: clicking the video itself must not close it */}
-            <div className="video-modal" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="video-modal"
+              onClick={(e) => e.stopPropagation()}
+              style={{ boxShadow: "none" }}
+            >
               <video src={VIDEO_SRC} controls autoPlay playsInline />
               <button
                 className="video-close"
-                onClick={() => setIsVideoOpen(false)}
+                onClick={closeVideoAndScroll}
                 aria-label="Close video"
               >
                 &times;
@@ -73,6 +85,7 @@ function Hero() {
           </div>,
           document.body,
         )}
+        
     </div>
   );
 }
