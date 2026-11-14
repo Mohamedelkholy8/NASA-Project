@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import img1 from "../../assets/img/mars1.jpeg";
 import img2 from "../../assets/img/mars2.jpeg";
 import img3 from "../../assets/img/mars3.jpeg";
@@ -104,6 +105,9 @@ const quiz = [
   },
 ];
 
+const YOUTUBE_ID = "sNNqP2PvJQk";
+const VIDEO_URL = `https://www.youtube.com/embed/${YOUTUBE_ID}?autoplay=1&rel=0&modestbranding=1`;
+
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500&display=swap');
 html{scroll-behavior:smooth}
@@ -138,6 +142,9 @@ html{scroll-behavior:smooth}
 .vk .sub{margin-top:24px;font-size:1.25rem;max-width:34ch;font-weight:500}
 .vk .btn{display:inline-block;margin-top:28px;background:#FBEFE2;color:#2B1810;text-decoration:none;font-weight:500;padding:14px 26px;border-radius:999px}
 .vk .btn:hover{background:#fff}
+.vk .btn .play{display:inline-grid;place-items:center;width:26px;height:26px;margin-right:10px;border-radius:50%;background:var(--accent);color:#fff;font-size:.65rem;padding-left:2px;vertical-align:middle}
+.vk .watch-hint{margin-top:12px;font-size:.92rem;opacity:.85}
+@media(prefers-reduced-motion:no-preference){.vk .btn .play{animation:vkpulse 2.4s infinite}}
 
 .vk .facts{background:var(--band);color:var(--band-text)}
 .vk .facts dl{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin:0;padding:28px 0}
@@ -220,11 +227,38 @@ export default function Mars1() {
   // checked once on page load (not live), so the quiz can still show its
   // success message before it sends the user back to the slider
   const [alreadyDone] = useState(() => isQuizDone("viking-1"));
-  // adding smooth scroll
-  function handleScroll(e) {
+  // video popup (same behaviour as the Hero popup on the home page)
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+
+  function openVideo(e) {
     e.preventDefault();
-    section.current.scrollIntoView({ behavior: "smooth" });
+    setIsVideoOpen(true);
   }
+
+  // closing the popup scrolls down to the story section (the button's old job)
+  const closeVideo = useCallback(() => {
+    document.body.style.overflow = "";
+    setIsVideoOpen(false);
+    requestAnimationFrame(() => {
+      section.current?.scrollIntoView({ behavior: "smooth" });
+    });
+  }, []);
+
+  // while the popup is open: close on Escape + stop the page from scrolling
+  useEffect(() => {
+    if (!isVideoOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") closeVideo();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [closeVideo, isVideoOpen]);
   // quiz already solved -> this page is closed, go back to the slider
   if (alreadyDone) {
     return <Navigate to="/" replace state={{ scrollTo: "slider" }} />;
@@ -246,11 +280,45 @@ export default function Mars1() {
             <p className="sub">
               Scientists had the same question, so they sent Viking 1.
             </p>
-            <a className="btn scroll" href="#" onClick={handleScroll}>
+            <a className="btn scroll" href="#" onClick={openVideo}>
+              <span className="play" aria-hidden="true">
+                &#9654;
+              </span>
               Explore the mission
             </a>
+            <p className="watch-hint">Click here to watch the mission video</p>
           </div>
         </div>
+
+        {/* Rendered in document.body so it is always centered on the screen */}
+        {isVideoOpen &&
+          createPortal(
+            <div
+              className="video-overlay"
+              onClick={closeVideo}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Viking 1 mission video"
+            >
+              {/* stopPropagation: clicking the video itself must not close it */}
+              <div className="video-modal" onClick={(e) => e.stopPropagation()}>
+                <iframe
+                  src={VIDEO_URL}
+                  title="Viking 1 mission"
+                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                  allowFullScreen
+                />
+                <button
+                  className="video-close"
+                  onClick={closeVideo}
+                  aria-label="Close video"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>,
+            document.body,
+          )}
 
         <div className="facts">
           <div className="wrap">

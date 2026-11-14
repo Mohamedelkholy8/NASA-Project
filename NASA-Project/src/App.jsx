@@ -1,12 +1,27 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { useLayoutEffect } from "react";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import Mars1 from "./pages/Mars1";
 import Pioneer from "./pages/Pioneer";
 import PageNotFound from "./pages/PageNotFound";
 
+// Every new page starts from the top (React Router keeps the old scroll position)
+function ScrollToTop() {
+  const { pathname, state } = useLocation();
+
+  useLayoutEffect(() => {
+    // coming back from a quiz: HomePage scrolls to the slider by itself
+    if (state?.scrollTo) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [pathname, state]);
+
+  return null;
+}
+
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/mars1" element={<Mars1 />} />
