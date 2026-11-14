@@ -12,7 +12,7 @@ import { isQuizDone } from "../utils/quizProgress";
 /* Edit the alt text / captions here to describe each photo. */
 const photos = {
   hero: { src: img1, alt: "The Kepler space telescope in space" },
-  plan: { src: img2, alt: "Kepler launching from Earth" },
+  plan: { src: img2, alt: "Kepler launching from Erth" },
   craft: { src: img3, alt: "The Kepler space telescope and its camera" },
   surface: {
     src: img4,
