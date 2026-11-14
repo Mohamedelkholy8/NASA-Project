@@ -7,13 +7,17 @@ import img3 from "../../assets/img/moon3.jpeg";
 import img4 from "../../assets/img/moon4.jpeg";
 import { Navigate } from "react-router-dom";
 import Quiz from "../features/quiz/Quiz";
-import { isQuizDone } from "../utils/quizProgress";
+import { getQuizProgress, isQuizDone } from "../utils/quizProgress";
+import { isCardUnlocked } from "../utils/cards";
 
 /* Edit the alt text / captions here to describe each photo. */
 const photos = {
   hero: { src: img1, alt: "Apollo 15 astronaut on the lunar surface" },
   plan: { src: img2, alt: "The Falcon descent stage on the Moon" },
-  craft: { src: img3, alt: "The Falcon ascent stage lifting off from the Moon" },
+  craft: {
+    src: img3,
+    alt: "The Falcon ascent stage lifting off from the Moon",
+  },
   surface: {
     src: img4,
     alt: "The Apollo 15 ALSEP instruments on the lunar surface",
@@ -156,8 +160,7 @@ const quiz = [
   },
 ];
 
-// TODO: replace with the Apollo 15 video's YouTube ID
-const YOUTUBE_ID = "YOUR_YOUTUBE_ID";
+const YOUTUBE_ID = "309eZK7XOgU";
 const VIDEO_URL = `https://www.youtube.com/embed/${YOUTUBE_ID}?autoplay=1&rel=0&modestbranding=1`;
 
 const css = `
@@ -290,6 +293,8 @@ export default function Moon() {
   // checked once on page load (not live), so the quiz can still show its
   // success message before it sends the user back to the slider
   const [alreadyDone] = useState(() => isQuizDone("lrv"));
+  // previous card's quiz not solved yet -> this page is locked
+  const [locked] = useState(() => !isCardUnlocked("lrv", getQuizProgress()));
   // video popup (same behaviour as the Hero popup on the home page)
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
@@ -324,13 +329,20 @@ export default function Moon() {
   }, [closeVideo, isVideoOpen]);
 
   // quiz already solved -> this page is closed, go back to the slider
-  if (alreadyDone) {
+  if (alreadyDone || locked) {
     return <Navigate to="/" replace state={{ scrollTo: "slider" }} />;
   }
 
   // one instrument on a stand, reused for the seismometer and magnetometer
   const cable = (d) => (
-    <path d={d} stroke="#8DB8E8" strokeWidth="3" fill="none" strokeLinecap="round" strokeDasharray="2 7" />
+    <path
+      d={d}
+      stroke="#8DB8E8"
+      strokeWidth="3"
+      fill="none"
+      strokeLinecap="round"
+      strokeDasharray="2 7"
+    />
   );
 
   return (
@@ -448,8 +460,8 @@ export default function Moon() {
                   <p className="role">The upper part</p>
                   <h3>The Ascent Stage</h3>
                   <p>
-                    It carries the astronauts back into space, where they
-                    meet Worden in the Command and Service Module.
+                    It carries the astronauts back into space, where they meet
+                    Worden in the Command and Service Module.
                   </p>
                 </div>
               </div>
@@ -538,7 +550,13 @@ export default function Moon() {
                     fill="#B9C6D6"
                     opacity=".18"
                   />
-                  <ellipse cx="300" cy="372" rx="200" ry="12" fill="rgba(0,0,0,.35)" />
+                  <ellipse
+                    cx="300"
+                    cy="372"
+                    rx="200"
+                    ry="12"
+                    fill="rgba(0,0,0,.35)"
+                  />
 
                   {/* cables to instruments */}
                   {cable("M270 235 Q200 300 130 285")}
@@ -546,30 +564,86 @@ export default function Moon() {
                   {cable("M330 205 Q400 150 440 130")}
 
                   {/* central station */}
-                  <rect x="255" y="190" width="90" height="56" rx="8" fill="#B9C6D6" />
-                  <line x1="255" y1="214" x2="345" y2="214" stroke="rgba(20,29,43,.4)" />
+                  <rect
+                    x="255"
+                    y="190"
+                    width="90"
+                    height="56"
+                    rx="8"
+                    fill="#B9C6D6"
+                  />
+                  <line
+                    x1="255"
+                    y1="214"
+                    x2="345"
+                    y2="214"
+                    stroke="rgba(20,29,43,.4)"
+                  />
                   <circle cx="275" cy="230" r="4" fill="#8DB8E8" />
                   <circle cx="295" cy="230" r="4" fill="#8DB8E8" />
                   {/* antenna */}
-                  <g stroke="#D5E0EC" strokeWidth="4" fill="none" strokeLinecap="round">
+                  <g
+                    stroke="#D5E0EC"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeLinecap="round"
+                  >
                     <path d="M300 190 L300 130" />
                   </g>
-                  <ellipse cx="300" cy="118" rx="38" ry="16" fill="#DCE5EF" stroke="#B9C6D6" strokeWidth="2" />
+                  <ellipse
+                    cx="300"
+                    cy="118"
+                    rx="38"
+                    ry="16"
+                    fill="#DCE5EF"
+                    stroke="#B9C6D6"
+                    strokeWidth="2"
+                  />
 
                   {/* seismometer: low dome */}
-                  <path d="M95 300 Q130 255 165 300 Z" fill="#DCE5EF" stroke="#B9C6D6" strokeWidth="3" />
-                  <rect x="90" y="298" width="80" height="8" rx="3" fill="#B9C6D6" />
+                  <path
+                    d="M95 300 Q130 255 165 300 Z"
+                    fill="#DCE5EF"
+                    stroke="#B9C6D6"
+                    strokeWidth="3"
+                  />
+                  <rect
+                    x="90"
+                    y="298"
+                    width="80"
+                    height="8"
+                    rx="3"
+                    fill="#B9C6D6"
+                  />
 
                   {/* magnetometer: box on a stand */}
                   <g stroke="#D5E0EC" strokeWidth="4" strokeLinecap="round">
                     <line x1="470" y1="300" x2="455" y2="335" />
                     <line x1="470" y1="300" x2="485" y2="335" />
                   </g>
-                  <rect x="445" y="272" width="50" height="30" rx="5" fill="#DCE5EF" stroke="#B9C6D6" strokeWidth="3" />
+                  <rect
+                    x="445"
+                    y="272"
+                    width="50"
+                    height="30"
+                    rx="5"
+                    fill="#DCE5EF"
+                    stroke="#B9C6D6"
+                    strokeWidth="3"
+                  />
 
                   {/* RTG: finned cylinder */}
                   <g transform="translate(460 120)">
-                    <rect x="-14" y="-34" width="28" height="68" rx="6" fill="#26364A" stroke="#D5E0EC" strokeWidth="2" />
+                    <rect
+                      x="-14"
+                      y="-34"
+                      width="28"
+                      height="68"
+                      rx="6"
+                      fill="#26364A"
+                      stroke="#D5E0EC"
+                      strokeWidth="2"
+                    />
                     <g stroke="#8DB8E8" strokeWidth="2">
                       {[-24, -10, 4, 18].map((y) => (
                         <g key={y}>
@@ -621,14 +695,14 @@ export default function Moon() {
             <h2>Three trips, countless discoveries</h2>
             <p className="lede">
               The astronauts completed three spacewalks, called EVAs. They
-              visited craters, studied the lunar ground, and rode the first
-              Moon car to places far from their landing site.
+              visited craters, studied the lunar ground, and rode the first Moon
+              car to places far from their landing site.
             </p>
             <div className="big">
               <b>27.9</b>
               <p>
-                Kilometres explored across the three spacewalks, using the
-                Lunar Roving Vehicle to reach craters and collect samples.
+                Kilometres explored across the three spacewalks, using the Lunar
+                Roving Vehicle to reach craters and collect samples.
               </p>
             </div>
             <figure className="shot">
@@ -643,8 +717,8 @@ export default function Moon() {
               <div>
                 <h3>The first lunar rover</h3>
                 <p>
-                  Apollo 15 was the first mission to use the four-wheeled
-                  Lunar Roving Vehicle, or LRV.
+                  Apollo 15 was the first mission to use the four-wheeled Lunar
+                  Roving Vehicle, or LRV.
                 </p>
               </div>
               <div>
@@ -693,8 +767,8 @@ export default function Moon() {
 
       <footer>
         <div className="wrap">
-          ACCIOverse · Planetary Journeys · Based on the NASA Apollo 15
-          mission. Illustrations are simplified and not to scale.
+          ACCIOverse · Planetary Journeys · Based on the NASA Apollo 15 mission.
+          Illustrations are simplified and not to scale.
         </div>
       </footer>
     </div>

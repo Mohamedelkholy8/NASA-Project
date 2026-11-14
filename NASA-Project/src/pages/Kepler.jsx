@@ -7,7 +7,8 @@ import img3 from "../../assets/img/kepler3.jpg";
 import img4 from "../../assets/img/kepler4.jpg";
 import { Navigate } from "react-router-dom";
 import Quiz from "../features/quiz/Quiz";
-import { isQuizDone } from "../utils/quizProgress";
+import { getQuizProgress, isQuizDone } from "../utils/quizProgress";
+import { isCardUnlocked } from "../utils/cards";
 
 /* Edit the alt text / captions here to describe each photo. */
 const photos = {
@@ -323,6 +324,8 @@ export default function Kepler() {
   // checked once on page load (not live), so the quiz can still show its
   // success message before it sends the user back to the slider
   const [alreadyDone] = useState(() => isQuizDone("kepler"));
+  // previous card's quiz not solved yet -> this page is locked
+  const [locked] = useState(() => !isCardUnlocked("kepler", getQuizProgress()));
   // video popup (same behaviour as the Hero popup on the home page)
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
@@ -357,7 +360,7 @@ export default function Kepler() {
   }, [closeVideo, isVideoOpen]);
 
   // quiz already solved -> this page is closed, go back to the slider
-  if (alreadyDone) {
+  if (alreadyDone || locked) {
     return <Navigate to="/" replace state={{ scrollTo: "slider" }} />;
   }
 
@@ -570,7 +573,13 @@ export default function Kepler() {
                   <rect width="600" height="400" fill="url(#kpg)" />
 
                   {/* star with glow */}
-                  <circle cx="200" cy="125" r="104" fill="#E8C97A" opacity=".14" />
+                  <circle
+                    cx="200"
+                    cy="125"
+                    r="104"
+                    fill="#E8C97A"
+                    opacity=".14"
+                  />
                   <circle cx="200" cy="125" r="80" fill="url(#kpstar)" />
                   {/* planet in front of the star */}
                   <circle cx="188" cy="138" r="20" fill="#2A201C" />
@@ -594,7 +603,15 @@ export default function Kepler() {
                   />
 
                   {/* brightness graph */}
-                  <line x1="40" y1="345" x2="560" y2="345" stroke="#D9CCC4" strokeWidth="1.5" opacity=".5" />
+                  <line
+                    x1="40"
+                    y1="345"
+                    x2="560"
+                    y2="345"
+                    stroke="#D9CCC4"
+                    strokeWidth="1.5"
+                    opacity=".5"
+                  />
                   <path
                     d="M40 290 H150 L160 322 H220 L230 290 H360 L370 322 H430 L440 290 H560"
                     fill="none"
@@ -606,7 +623,13 @@ export default function Kepler() {
                   <text x="40" y="272" fill="#E9D8C8" fontSize="13">
                     Star's brightness
                   </text>
-                  <text x="560" y="368" fill="#E9D8C8" fontSize="13" textAnchor="end">
+                  <text
+                    x="560"
+                    y="368"
+                    fill="#E9D8C8"
+                    fontSize="13"
+                    textAnchor="end"
+                  >
                     Time
                   </text>
                 </svg>
@@ -652,8 +675,8 @@ export default function Kepler() {
             <p className="lede">
               Kepler changed the way we understand our galaxy. It showed that
               planets are incredibly common, some smaller than Earth and others
-              much larger than Jupiter, and that some stars have several
-              planets orbiting them.
+              much larger than Jupiter, and that some stars have several planets
+              orbiting them.
             </p>
             <div className="big">
               <b>2,600+</b>
@@ -681,16 +704,16 @@ export default function Kepler() {
               <div>
                 <h3>The Habitable Zone</h3>
                 <p>
-                  Many stars may have small, possibly rocky planets where
-                  liquid water could exist. That does not mean life is there,
-                  but it gives scientists places to investigate.
+                  Many stars may have small, possibly rocky planets where liquid
+                  water could exist. That does not mean life is there, but it
+                  gives scientists places to investigate.
                 </p>
               </div>
               <div>
                 <h3>Systems of planets</h3>
                 <p>
-                  Some stars have several planets, like the six of the
-                  Kepler-11 system announced in 2011.
+                  Some stars have several planets, like the six of the Kepler-11
+                  system announced in 2011.
                 </p>
               </div>
             </div>
@@ -743,9 +766,9 @@ export default function Kepler() {
           <div className="wrap">
             <h2>Passing the torch to TESS</h2>
             <p className="lede">
-              TESS, the Transiting Exoplanet Survey Satellite, launched on
-              April 18, 2018, before Kepler officially retired on October 30.
-              It continues the search with a different strategy.
+              TESS, the Transiting Exoplanet Survey Satellite, launched on April
+              18, 2018, before Kepler officially retired on October 30. It
+              continues the search with a different strategy.
             </p>
             <div className="pair">
               <div>

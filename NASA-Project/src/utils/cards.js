@@ -6,9 +6,9 @@
 // lock starts counting them automatically.
 export const CARD_ORDER = [
   { id: "viking-1", path: "/mars1" },
-  { id: "kepler", path: null },
+  { id: "kepler", path: "/kepler" },
   { id: "pioneer-10", path: "/pioneer" },
-  { id: "lrv", path: null },
+  { id: "lrv", path: "/moon" },
 ];
 
 // done = { "viking-1": true, ... } (see utils/quizProgress.js)
