@@ -46,7 +46,7 @@ function Hero() {
             className="btn normalText"
             onClick={() => setIsVideoOpen(true)}
           >
-            <span> &gt; </span>Discover how it works
+            <span> &gt; </span>Discover Forgotten Stories
           </button>
         </div>
         <div className="earth-img">
