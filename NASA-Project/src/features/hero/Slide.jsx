@@ -7,6 +7,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import astronautImg from "../../../assets/img/space-research.png";
 import vikingImg from "../../../assets/img/viking-launch.jpg";
+import keplerImg from "../../../assets/img/kepler1.jpg";
 import pioneerCardImg from "../../../assets/img/pioneerCard.jpeg";
 import moonCardImg from "../../../assets/img/moonCard.jpeg";
 
@@ -35,6 +36,7 @@ const SLIDES = [
     meta: "Space telescope · 2009",
     hue: 25,
     planet: "mars",
+    image: keplerImg,
     y: 190,
     rot: 2,
   },
@@ -322,7 +324,11 @@ export default function Slide() {
                 transform: `rotate(${s.rot}deg)`,
               }}
             >
-              {s.id === "lrv" ? (
+              {s.id === "kepler" ? (
+                <Link className="sl-card-link" to="/kepler">
+                  {card}
+                </Link>
+              ) : s.id === "lrv" ? (
                 <Link className="sl-card-link" to="/moon">
                   {card}
                 </Link>
