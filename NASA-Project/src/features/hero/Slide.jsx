@@ -1,6 +1,7 @@
-// Slides.jsx
+// Slide.jsx
 // npm i gsap
-import { useLayoutEffect, useRef } from "react";
+
+import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { resetQuizProgress, useQuizProgress } from "../../utils/quizProgress";
 import { CARD_ORDER, isCardUnlocked } from "../../utils/cards";
@@ -10,32 +11,26 @@ import astronautImg from "../../../assets/img/space-research.png";
 import vikingImg from "../../../assets/img/viking-launch.jpg";
 import pioneerCardImg from "../../../assets/img/pioneerCard.jpeg";
 
-// kepler1 / moonCard: بيدوّر عليهم في assets/img بأي امتداد (jpg, jpeg, png, webp)
 const cardImages = import.meta.glob(
   "../../../assets/img/*.{png,jpg,jpeg,webp}",
   {
     eager: true,
     import: "default",
-  },
+  }
 );
+
 const findImage = (name) =>
   Object.entries(cardImages).find(
-    ([path]) =>
-      path
-        .split("/")
-        .pop()
-        .replace(/\.\w+$/, "") === name,
+    ([path]) => path.split("/").pop().replace(/\.\w+$/, "") === name
   )?.[1];
+
 const keplerImg = findImage("kepler1");
 const moonImg = findImage("moonCard");
 
 gsap.registerPlugin(ScrollTrigger);
-// على الموبايل: ماتعملش refresh كل ما شريط العنوان يطلع/ينزل (بيعمل نط في الـ pin)
 ScrollTrigger.config({ ignoreMobileResize: true });
 
-/* ---------- Content: edit freely. Add `image: "/your.jpg"` to use a photo ---------- */
 const SLIDES = [
-  // ---- Mars ----
   {
     id: "viking-1",
     group: "Mars",
@@ -69,7 +64,6 @@ const SLIDES = [
     y: -10,
     rot: 3,
   },
-  // ---- Moon ----
   {
     id: "lrv",
     group: "Moon",
@@ -83,9 +77,8 @@ const SLIDES = [
   },
 ];
 
-const TICKS = ["10", "20", "30", "40"]; // distance markers on the baseline
+const TICKS = ["10", "20", "30", "40"];
 
-/* ---------- Pure-CSS artwork so the component works with no assets ---------- */
 function Art({ planet, hue }) {
   const base = {
     position: "absolute",
@@ -94,6 +87,7 @@ function Art({ planet, hue }) {
                  radial-gradient(90% 70% at 90% 100%, hsl(${hue + 50} 80% 25% / .8), transparent 65%),
                  #0a0818`,
   };
+
   const body = {
     position: "absolute",
     left: "50%",
@@ -103,6 +97,7 @@ function Art({ planet, hue }) {
     transform: "translate(-50%,-50%)",
     borderRadius: "50%",
   };
+
   const looks = {
     earth: {
       background: `radial-gradient(circle at 30% 30%, #8fd0ff, #1b5fb4 45%, #08203f 80%)`,
@@ -133,9 +128,11 @@ function Art({ planet, hue }) {
       filter: "blur(3px)",
     },
   }[planet];
+
   return (
     <div style={base}>
       <div style={{ ...body, ...looks }} />
+
       {planet === "ring" && (
         <div
           style={{
@@ -156,28 +153,56 @@ function Art({ planet, hue }) {
 }
 
 export default function Slide() {
-  const done = useQuizProgress(); // { "viking-1": true, ... }
+  const done = useQuizProgress();
+
   const root = useRef(null);
   const track = useRef(null);
   const ghost = useRef(null);
-  const bar = useRef(null);
   const astro = useRef(null);
+
+  // First-time visitor name
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    const savedName = localStorage.getItem("visitorName");
+
+    if (savedName) {
+      setName(savedName);
+      setShowNamePrompt(false);
+    } else {
+      setShowNamePrompt(true);
+    }
+  }, []);
+
+  const handleNameSubmit = (e) => {
+    e.preventDefault();
+
+    const trimmedName = name.trim();
+
+    if (!trimmedName) return;
+
+    localStorage.setItem("visitorName", trimmedName);
+    setName(trimmedName);
+    setShowNamePrompt(false);
+  };
 
   useLayoutEffect(() => {
     const mm = gsap.matchMedia();
 
     mm.add("(prefers-reduced-motion: no-preference)", () => {
-      const getDistance = () => track.current.scrollWidth - window.innerWidth;
+      const getDistance = () =>
+        track.current.scrollWidth - window.innerWidth;
 
-      // الرائد بيميل شوية حسب سرعة السكرول، وبيرجع يتعدل لما السكرول يقف
       const tilt = gsap.quickTo(astro.current, "rotation", {
         duration: 0.9,
         ease: "power3.out",
       });
+
       const resetTilt = () => tilt(0);
+
       ScrollTrigger.addEventListener("scrollEnd", resetTilt);
 
-      // 1) Pin the section and scrub the track sideways
       const scroll = gsap.to(track.current, {
         x: () => -getDistance(),
         ease: "none",
@@ -194,10 +219,6 @@ export default function Slide() {
         },
       });
 
-      // 1b) Astronaut travels from the first card to the last card.
-      //     Start: centred on the first card's left edge.
-      //     End:   centred on the last card's right edge (when the scroll ends).
-      //     He moves slower than the track, so the cards slide past him.
       const cards = gsap.utils.toArray(".sl-card", root.current);
       const first = cards[0];
       const last = cards[cards.length - 1];
@@ -205,9 +226,12 @@ export default function Slide() {
 
       gsap.fromTo(
         astro.current,
-        { x: () => first.offsetLeft - half() },
         {
-          x: () => last.offsetLeft + last.offsetWidth - getDistance() - half(),
+          x: () => first.offsetLeft - half(),
+        },
+        {
+          x: () =>
+            last.offsetLeft + last.offsetWidth - getDistance() - half(),
           ease: "none",
           scrollTrigger: {
             trigger: root.current,
@@ -216,12 +240,14 @@ export default function Slide() {
             scrub: 1.5,
             invalidateOnRefresh: true,
           },
-        },
+        }
       );
 
-      // bobs up/down while you scroll, like swimming
       gsap.to(astro.current, {
-        keyframes: { y: [0, -80, 40, -60, 30], easeEach: "sine.inOut" },
+        keyframes: {
+          y: [0, -80, 40, -60, 30],
+          easeEach: "sine.inOut",
+        },
         ease: "none",
         scrollTrigger: {
           trigger: root.current,
@@ -232,7 +258,6 @@ export default function Slide() {
         },
       });
 
-      // 2) Ghost heading drifts slower than the cards (parallax)
       gsap.to(ghost.current, {
         x: () => -getDistance() * 0.18,
         ease: "none",
@@ -245,27 +270,16 @@ export default function Slide() {
         },
       });
 
-      // 3) Progress bar
-      if (bar.current) {
-        gsap.to(bar.current, {
-          scaleX: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: root.current,
-            start: "top top",
-            end: () => "+=" + getDistance(),
-            scrub: true,
-            invalidateOnRefresh: true,
-          },
-        });
-      }
-
-      // 4) Each card straightens up + brightens as it crosses the viewport centre
-      gsap.utils.toArray(".sl-card").forEach((card) => {
+      gsap.utils.toArray(".sl-card", root.current).forEach((card) => {
         const rot = Number(card.dataset.rot);
+
         gsap.fromTo(
           card,
-          { rotation: rot * 2.5, scale: 0.88, opacity: 0.45 },
+          {
+            rotation: rot * 2.5,
+            scale: 0.88,
+            opacity: 0.45,
+          },
           {
             rotation: 0,
             scale: 1,
@@ -278,11 +292,12 @@ export default function Slide() {
               end: "left 40%",
               scrub: true,
             },
-          },
+          }
         );
       });
 
-      return () => ScrollTrigger.removeEventListener("scrollEnd", resetTilt);
+      return () =>
+        ScrollTrigger.removeEventListener("scrollEnd", resetTilt);
     });
 
     return () => mm.revert();
@@ -292,11 +307,39 @@ export default function Slide() {
     <section ref={root} className="sl-root" aria-label="Space moments">
       <style>{css}</style>
 
+      {/* First-time visitor name prompt */}
+      {showNamePrompt && (
+        <div className="name-overlay">
+          <form className="name-modal" onSubmit={handleNameSubmit}>
+            <span className="name-eyebrow">SPACE EXPLORATION</span>
+
+            <h2>Welcome, Space Explorer!</h2>
+
+            <p>
+              Before we start our journey through space, what should we call
+              you?
+            </p>
+
+            <input
+              type="text"
+              placeholder="Enter your name..."
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+              autoComplete="given-name"
+              maxLength={40}
+              required
+            />
+
+            <button type="submit">Start Exploring</button>
+          </form>
+        </div>
+      )}
+
       <h2 ref={ghost} className="sl-ghost" aria-hidden="true">
         SPACE MOMENTS
       </h2>
 
-      {/* Floating astronaut (background layer, behind the cards) */}
       <div ref={astro} className="sl-astro" aria-hidden="true">
         <div className="sl-astro-mouse">
           <img
@@ -321,15 +364,16 @@ export default function Slide() {
                   )}
                 </div>
               </div>
+
               <h3>
                 <span className="sl-group">{s.group} :</span> {s.title}
               </h3>
+
               <p>{s.meta}</p>
             </>
           );
 
           const isDone = !!done[s.id];
-          // card N opens only after the quiz of card N-1 is solved
           const unlocked = isCardUnlocked(s.id, done);
           const isLocked = !unlocked && !isDone;
           const path = CARD_ORDER.find((c) => c.id === s.id)?.path;
@@ -338,7 +382,9 @@ export default function Slide() {
           return (
             <article
               key={s.title}
-              className={`sl-card sl-${s.group.toLowerCase()}${isDone ? " sl-done" : ""}${isLocked ? " sl-locked" : ""}`}
+              className={`sl-card sl-${s.group.toLowerCase()}${
+                isDone ? " sl-done" : ""
+              }${isLocked ? " sl-locked" : ""}`}
               data-rot={s.rot}
               aria-disabled={isDone || isLocked || undefined}
               style={{
@@ -347,14 +393,14 @@ export default function Slide() {
                 transform: `rotate(${s.rot}deg)`,
               }}
             >
-              {canOpen ? ( // solved or locked card = no link, can't be opened
+              {canOpen ? (
                 <Link className="sl-card-link" to={path}>
                   {card}
                 </Link>
               ) : (
                 card
               )}
-              {/* Locked until the previous card's quiz is solved */}
+
               {isLocked && (
                 <div
                   className="sl-lock"
@@ -367,7 +413,7 @@ export default function Slide() {
                   </span>
                 </div>
               )}
-              {/* Star: outline = quiz not solved yet, filled = solved */}
+
               <span
                 className={`sl-star${isDone ? " on" : ""}`}
                 role="img"
@@ -382,20 +428,20 @@ export default function Slide() {
             </article>
           );
         })}
+
         <div className="sl-end" />
       </div>
 
-      {/* Distance ruler along the bottom */}
       <div className="sl-ruler" aria-hidden="true">
         <div className="sl-ruler-ticks" />
       </div>
+
       <div className="sl-marks" aria-hidden="true">
         {TICKS.map((t) => (
           <span key={t}>{t}</span>
         ))}
       </div>
 
-      {/* Testing only: delete this button before you hand in the project */}
       <button type="button" className="sl-reset" onClick={resetQuizProgress}>
         Reset quiz
       </button>
@@ -403,20 +449,27 @@ export default function Slide() {
   );
 }
 
-/* ---------- Styles (scoped by sl- prefix) ---------- */
 const css = `
 .sl-root{
   --top:18vh; --yk:1;
-  position:relative; height:100vh; height:100svh; overflow:hidden;
+  position:relative;
+  height:100vh;
+  height:100svh;
+  overflow:hidden;
   background:
     radial-gradient(60% 50% at 15% 30%, #3a2a7a55, transparent 70%),
     radial-gradient(50% 50% at 85% 70%, #1f3a8a44, transparent 70%),
     #07051a;
-  color:#fff; font-family:"Roboto Mono","JetBrains Mono",ui-monospace,monospace;
+  color:#fff;
+  font-family:"Roboto Mono","JetBrains Mono",ui-monospace,monospace;
 }
-/* tiny star field */
+
 .sl-root::before{
-  content:""; position:absolute; inset:0; pointer-events:none; opacity:.7;
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.7;
   background-image:
     radial-gradient(1.5px 1.5px at 12% 20%, #fff, transparent),
     radial-gradient(1px 1px at 33% 70%, #cfd8ff, transparent),
@@ -426,117 +479,478 @@ const css = `
     radial-gradient(1px 1px at 45% 90%, #cfd8ff, transparent);
   background-size:420px 420px;
 }
+
+/* First visit name prompt */
+.name-overlay{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:20;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  box-sizing:border-box;
+  background:rgba(0,0,0,.3);
+  backdrop-filter:blur(3px);
+  -webkit-backdrop-filter:blur(3px);
+}
+
+.name-modal{
+  width:min(100%,440px);
+  padding:45px 35px;
+  text-align:center;
+  background:rgba(10,8,24,.94);
+  border:1px solid rgba(143,123,255,.4);
+  border-radius:18px;
+  box-shadow:0 0 60px rgba(143,123,255,.15);
+  animation:name-appear .6s ease both;
+}
+
+.name-eyebrow{
+  display:block;
+  margin-bottom:18px;
+  color:#8f7bff;
+  font-size:10px;
+  letter-spacing:.3em;
+}
+
+.name-modal h2{
+  margin:0 0 14px;
+  color:white;
+  font:700 clamp(22px,4vw,30px) Georgia,serif;
+}
+
+.name-modal p{
+  margin:0 0 28px;
+  color:#a9a4c8;
+  font-size:12px;
+  line-height:1.8;
+}
+
+.name-modal input{
+  display:block;
+  width:100%;
+  box-sizing:border-box;
+  padding:15px;
+  margin-bottom:15px;
+  outline:none;
+  color:white;
+  background:#ffffff0b;
+  border:1px solid #ffffff30;
+  border-radius:8px;
+  font:13px "Roboto Mono",monospace;
+  transition:border-color .3s;
+}
+
+.name-modal input:focus{
+  border-color:#8f7bff;
+}
+
+.name-modal input::placeholder{
+  color:#77738f;
+}
+
+.name-modal button{
+  width:100%;
+  padding:15px;
+  color:white;
+  background:linear-gradient(90deg,#7659e8,#4a6dff);
+  border:none;
+  border-radius:8px;
+  font:700 11px "Roboto Mono",monospace;
+  letter-spacing:.12em;
+  cursor:pointer;
+  transition:transform .3s,box-shadow .3s;
+}
+
+.name-modal button:hover{
+  transform:translateY(-3px);
+  box-shadow:0 8px 25px #7659e866;
+}
+
+@keyframes name-appear{
+  from{
+    opacity:0;
+    transform:translateY(20px) scale(.96);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
+
+@media(max-width:480px){
+  .name-modal{
+    padding:35px 22px;
+  }
+}
+
 .sl-ghost{
-  position:absolute; top:4vh; left:8vw; margin:0; white-space:nowrap;
-  font-size:clamp(90px,17vw,260px); line-height:1; font-weight:800; letter-spacing:-.02em;
-  color:transparent; background:linear-gradient(180deg,#8f7bff55 0%, #6a4bd01f 60%, transparent 100%);
-  -webkit-background-clip:text; background-clip:text; user-select:none; pointer-events:none;
+  position:absolute;
+  top:4vh;
+  left:8vw;
+  margin:0;
+  white-space:nowrap;
+  font-size:clamp(90px,17vw,260px);
+  line-height:1;
+  font-weight:800;
+  letter-spacing:-.02em;
+  color:transparent;
+  background:linear-gradient(180deg,#8f7bff55 0%,#6a4bd01f 60%,transparent 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  user-select:none;
+  pointer-events:none;
 }
-/* ---- floating astronaut ---- */
+
 .sl-astro{
-  position:absolute; top:24vh; left:0; z-index:0; /* z-index:2 = قدّام الكروت */
-  width:clamp(110px,min(18vw,32vh),300px); pointer-events:none; will-change:transform;
+  position:absolute;
+  top:24vh;
+  left:0;
+  z-index:0;
+  width:clamp(110px,min(18vw,32vh),300px);
+  pointer-events:none;
+  will-change:transform;
 }
-/* soft glow behind him so he blends into the nebula */
+
 .sl-astro::before{
-  content:""; position:absolute; inset:-25%; z-index:-1; border-radius:50%;
-  background:radial-gradient(closest-side, #8f7bff40, #4a6dff1a 55%, transparent 75%);
+  content:"";
+  position:absolute;
+  inset:-25%;
+  z-index:-1;
+  border-radius:50%;
+  background:radial-gradient(closest-side,#8f7bff40,#4a6dff1a 55%,transparent 75%);
   filter:blur(10px);
 }
-/* mouse parallax, same --mx/--my variables the hero uses */
+
 .sl-astro-mouse{
   translate:calc(var(--mx) * -22px) calc(var(--my) * -22px);
   transition:translate .4s ease-out;
 }
-/* zero-gravity drift: slow wander + tumble */
+
 .sl-astro-img{
-  display:block; width:100%; height:auto;
+  display:block;
+  width:100%;
+  height:auto;
   transform-origin:50% 45%;
   animation:sl-astro-float 16s ease-in-out infinite;
   filter:drop-shadow(0 0 22px #8f7bff66) drop-shadow(0 24px 30px #000a);
 }
+
 @keyframes sl-astro-float{
-  0%   { transform:translate(0,0) rotate(-8deg) scale(1); }
-  25%  { transform:translate(22px,-30px) rotate(5deg) scale(1.03); }
-  50%  { transform:translate(-16px,-52px) rotate(12deg) scale(1.05); }
-  75%  { transform:translate(-26px,-16px) rotate(-3deg) scale(1.02); }
-  100% { transform:translate(0,0) rotate(-8deg) scale(1); }
+  0%{transform:translate(0,0) rotate(-8deg) scale(1)}
+  25%{transform:translate(22px,-30px) rotate(5deg) scale(1.03)}
+  50%{transform:translate(-16px,-52px) rotate(12deg) scale(1.05)}
+  75%{transform:translate(-26px,-16px) rotate(-3deg) scale(1.02)}
+  100%{transform:translate(0,0) rotate(-8deg) scale(1)}
 }
+
 .sl-track{
-  position:absolute; inset:0; display:flex; align-items:flex-start; gap:clamp(60px,12vw,200px);
-  padding:0 14vw; width:max-content; will-change:transform; z-index:1;
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:flex-start;
+  gap:clamp(60px,12vw,200px);
+  padding:0 14vw;
+  width:max-content;
+  will-change:transform;
+  z-index:1;
 }
+
 .sl-card{
-  position:relative; flex:none; width:clamp(150px,min(20vw,34vh),290px); margin-top:calc(var(--top) + var(--y) * var(--yk));
-  text-align:center; will-change:transform; 
+  position:relative;
+  flex:none;
+  width:clamp(150px,min(20vw,34vh),290px);
+  margin-top:calc(var(--top) + var(--y) * var(--yk));
+  text-align:center;
+  will-change:transform;
 }
-.sl-card-link{display:block; color:inherit; text-decoration:none}
-/* ---- quiz star (top-right corner of each card) ---- */
+
+.sl-card-link{
+  display:block;
+  color:inherit;
+  text-decoration:none;
+}
+
 .sl-star{
-  position:absolute; top:-18px; right:-18px; z-index:3; width:46px; height:46px;
-  display:grid; place-items:center; border-radius:50%;
-  background:#0a0818d9; border:1.5px solid #ffffff2e; backdrop-filter:blur(4px);
+  position:absolute;
+  top:-18px;
+  right:-18px;
+  z-index:3;
+  width:46px;
+  height:46px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#0a0818d9;
+  border:1.5px solid #ffffff2e;
+  backdrop-filter:blur(4px);
   pointer-events:none;
 }
-.sl-star svg{width:26px; height:26px; fill:transparent; stroke:#ffffff80; stroke-width:1.6; stroke-linejoin:round; transition:fill .5s, stroke .5s, filter .5s}
-.sl-star.on{border-color:#ffc94d99; box-shadow:0 0 22px #ffc94d66; animation:sl-star-pop .7s cubic-bezier(.2,1.6,.4,1) both}
-.sl-star.on svg{fill:#ffc94d; stroke:#ffe29a; filter:drop-shadow(0 0 6px #ffc94dcc)}
-@keyframes sl-star-pop{0%{transform:scale(.4) rotate(-40deg)} 100%{transform:scale(1) rotate(0)}}
-/* solved card -> grayscale (the star stays golden: it is outside .sl-frame) */
-.sl-frame{transition:filter .6s ease}
-.sl-card.sl-done .sl-frame{filter:grayscale(1) brightness(.85)}
-.sl-card.sl-done, .sl-card.sl-done *{cursor:not-allowed}
-.sl-card.sl-done{user-select:none}
-.sl-card.sl-done .sl-star{pointer-events:auto}
-.sl-card.sl-done .sl-group{color:#8b8a99}
-.sl-card.sl-done h3, .sl-card.sl-done p{opacity:.7}
-/* locked card -> dark + lock on top, can't be clicked */
-.sl-card.sl-locked .sl-frame{filter:grayscale(.55) brightness(.7)}
-.sl-card.sl-locked, .sl-card.sl-locked *{cursor:not-allowed}
-.sl-card.sl-locked{user-select:none}
-.sl-card.sl-locked h3, .sl-card.sl-locked p{opacity:.55}
-.sl-lock{position:absolute; left:0; top:0; width:100%; aspect-ratio:3/4; z-index:2; display:grid; place-content:center; justify-items:center; gap:12px; padding:0 16px; text-align:center; pointer-events:none}
-.sl-lock-icon{font-size:44px; line-height:1; filter:drop-shadow(0 4px 10px #000a)}
-.sl-lock-text{font-size:11px; letter-spacing:.1em; line-height:1.5; padding:6px 12px; border-radius:999px; background:#0a0818d9; border:1px solid #ffffff33}
+
+.sl-star svg{
+  width:26px;
+  height:26px;
+  fill:transparent;
+  stroke:#ffffff80;
+  stroke-width:1.6;
+  stroke-linejoin:round;
+  transition:fill .5s,stroke .5s,filter .5s;
+}
+
+.sl-star.on{
+  border-color:#ffc94d99;
+  box-shadow:0 0 22px #ffc94d66;
+  animation:sl-star-pop .7s cubic-bezier(.2,1.6,.4,1) both;
+}
+
+.sl-star.on svg{
+  fill:#ffc94d;
+  stroke:#ffe29a;
+  filter:drop-shadow(0 0 6px #ffc94dcc);
+}
+
+@keyframes sl-star-pop{
+  0%{transform:scale(.4) rotate(-40deg)}
+  100%{transform:scale(1) rotate(0)}
+}
+
 .sl-frame{
-  padding:5px; border-radius:14px; aspect-ratio:3/4;
-  background:linear-gradient(135deg, #e9e4ff, #8f7bff 35%, #4a6dff 65%, #d9f1ff);
-  box-shadow:0 0 40px hsl(var(--h) 90% 60% / .35), 0 25px 60px #000a;
+  transition:filter .6s ease;
 }
-/* Mars cards: frame in Mars colours */
+
+.sl-card.sl-done .sl-frame{
+  filter:grayscale(1) brightness(.85);
+}
+
+.sl-card.sl-done,
+.sl-card.sl-done *{
+  cursor:not-allowed;
+}
+
+.sl-card.sl-done{
+  user-select:none;
+}
+
+.sl-card.sl-done .sl-star{
+  pointer-events:auto;
+}
+
+.sl-card.sl-done .sl-group{
+  color:#8b8a99;
+}
+
+.sl-card.sl-done h3,
+.sl-card.sl-done p{
+  opacity:.7;
+}
+
+.sl-card.sl-locked .sl-frame{
+  filter:grayscale(.55) brightness(.7);
+}
+
+.sl-card.sl-locked,
+.sl-card.sl-locked *{
+  cursor:not-allowed;
+}
+
+.sl-card.sl-locked{
+  user-select:none;
+}
+
+.sl-card.sl-locked h3,
+.sl-card.sl-locked p{
+  opacity:.55;
+}
+
+.sl-lock{
+  position:absolute;
+  left:0;
+  top:0;
+  width:100%;
+  aspect-ratio:3/4;
+  z-index:2;
+  display:grid;
+  place-content:center;
+  justify-items:center;
+  gap:12px;
+  padding:0 16px;
+  text-align:center;
+  pointer-events:none;
+}
+
+.sl-lock-icon{
+  font-size:44px;
+  line-height:1;
+  filter:drop-shadow(0 4px 10px #000a);
+}
+
+.sl-lock-text{
+  font-size:11px;
+  letter-spacing:.1em;
+  line-height:1.5;
+  padding:6px 12px;
+  border-radius:999px;
+  background:#0a0818d9;
+  border:1px solid #ffffff33;
+}
+
+.sl-frame{
+  padding:5px;
+  border-radius:14px;
+  aspect-ratio:3/4;
+  background:linear-gradient(135deg,#e9e4ff,#8f7bff 35%,#4a6dff 65%,#d9f1ff);
+  box-shadow:0 0 40px hsl(var(--h) 90% 60% / .35),0 25px 60px #000a;
+}
+
 .sl-mars .sl-frame{
-  background:linear-gradient(135deg, #ffd9bd, #e8693a 35%, #b5340f 65%, #ffb48a);
-  box-shadow:0 0 40px #ff6a3d59, 0 25px 60px #000a;
+  background:linear-gradient(135deg,#ffd9bd,#e8693a 35%,#b5340f 65%,#ffb48a);
+  box-shadow:0 0 40px #ff6a3d59,0 25px 60px #000a;
 }
-.sl-mars .sl-group{color:#ff8a5c}
-.sl-art{position:relative; width:100%; height:100%; border-radius:10px; overflow:hidden; background:#0a0818}
-.sl-art img{width:100%; height:100%; object-fit:cover; display:block}
-.sl-card h3{margin:22px 0 8px; font:700 14px/1.3 "Times New Roman",Georgia,serif; letter-spacing:.14em; text-transform:uppercase}
-.sl-group{display:block; margin-bottom:6px; color:#8f7bff; letter-spacing:.2em}
-.sl-card p{margin:0; font-size:11px; letter-spacing:.12em; color:#a9a4c8}
-.sl-end{flex:none; width:10vw}
-.sl-reset{position:absolute; left:16px; bottom:44px; z-index:5; cursor:pointer; padding:8px 14px; border-radius:999px;
-  border:1px solid #ffffff40; background:#0a0818cc; color:#fff; font:500 12px "Roboto Mono",monospace}
-.sl-reset:hover{background:#ffffff22}
-.sl-ruler{position:absolute; left:0; right:0; bottom:0; height:30px}
+
+.sl-mars .sl-group{
+  color:#ff8a5c;
+}
+
+.sl-art{
+  position:relative;
+  width:100%;
+  height:100%;
+  border-radius:10px;
+  overflow:hidden;
+  background:#0a0818;
+}
+
+.sl-art img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.sl-card h3{
+  margin:22px 0 8px;
+  font:700 14px/1.3 "Times New Roman",Georgia,serif;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+
+.sl-group{
+  display:block;
+  margin-bottom:6px;
+  color:#8f7bff;
+  letter-spacing:.2em;
+}
+
+.sl-card p{
+  margin:0;
+  font-size:11px;
+  letter-spacing:.12em;
+  color:#a9a4c8;
+}
+
+.sl-end{
+  flex:none;
+  width:10vw;
+}
+
+.sl-reset{
+  position:absolute;
+  left:16px;
+  bottom:44px;
+  z-index:5;
+  cursor:pointer;
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid #ffffff40;
+  background:#0a0818cc;
+  color:#fff;
+  font:500 12px "Roboto Mono",monospace;
+}
+
+.sl-reset:hover{
+  background:#ffffff22;
+}
+
+.sl-ruler{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:30px;
+}
+
 .sl-ruler-ticks{
-  position:absolute; inset:0;
-  background:repeating-linear-gradient(90deg, #ffffff30 0 1px, transparent 1px 22px);
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(90deg,#ffffff30 0 1px,transparent 1px 22px);
   mask:linear-gradient(0deg,#000 0 14px,transparent 14px);
   -webkit-mask:linear-gradient(0deg,#000 0 14px,transparent 14px);
 }
-.sl-progress{position:absolute; left:0; bottom:0; width:100%; height:3px; background:linear-gradient(90deg,#8f7bff,#6fc0ff); transform:scaleX(0); transform-origin:left}
-.sl-marks{position:absolute; left:0; right:0; bottom:46px; display:flex; justify-content:space-around; font-size:clamp(40px,6vw,76px); font-weight:700; color:#ffffff0f; pointer-events:none}
-@media (max-width:640px){
-  .sl-card{width:min(62vw,36vh)} .sl-track{gap:14vw}
-  .sl-astro{width:clamp(100px,34vw,170px)}
+
+.sl-marks{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:46px;
+  display:flex;
+  justify-content:space-around;
+  font-size:clamp(40px,6vw,76px);
+  font-weight:700;
+  color:#ffffff0f;
+  pointer-events:none;
 }
-/* شاشات قصيرة (موبايل landscape / لابتوب صغير): قلل الإزاحة الرأسية عشان الكروت ماتتقصش */
-@media (max-height:700px){ .sl-root{--yk:.7} }
-@media (max-height:520px){ .sl-root{--top:8vh; --yk:.4} .sl-ghost{top:2vh} .sl-marks{display:none} }
-@media (prefers-reduced-motion: reduce){
-  .sl-root{height:auto; overflow-x:auto}
-  .sl-track{position:relative; padding-bottom:80px}
-  .sl-astro{left:6vw}
+
+@media(max-width:640px){
+  .sl-card{
+    width:min(62vw,36vh);
+  }
+
+  .sl-track{
+    gap:14vw;
+  }
+
+  .sl-astro{
+    width:clamp(100px,34vw,170px);
+  }
+}
+
+@media(max-height:700px){
+  .sl-root{
+    --yk:.7;
+  }
+}
+
+@media(max-height:520px){
+  .sl-root{
+    --top:8vh;
+    --yk:.4;
+  }
+
+  .sl-ghost{
+    top:2vh;
+  }
+
+  .sl-marks{
+    display:none;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .sl-root{
+    height:auto;
+    overflow-x:auto;
+  }
+
+  .sl-track{
+    position:relative;
+    padding-bottom:80px;
+  }
+
+  .sl-astro{
+    left:6vw;
+  }
 }
 `;
