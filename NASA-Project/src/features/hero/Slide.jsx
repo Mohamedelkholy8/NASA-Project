@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import astronautImg from "../../../assets/img/space-research.png";
 import vikingImg from "../../../assets/img/viking-launch.jpg";
 import pioneerCardImg from "../../../assets/img/pioneerCard.jpeg";
+import moonCardImg from "../../../assets/img/moonCard.jpeg";
 
 gsap.registerPlugin(ScrollTrigger);
 // على الموبايل: ماتعملش refresh كل ما شريط العنوان يطلع/ينزل (بيعمل نط في الـ pin)
@@ -56,6 +57,7 @@ const SLIDES = [
     meta: "Apollo 15 · 16 · 17",
     hue: 215,
     planet: "moon",
+    image: moonCardImg,
     y: 170,
     rot: -2,
   },
@@ -320,7 +322,11 @@ export default function Slide() {
                 transform: `rotate(${s.rot}deg)`,
               }}
             >
-              {s.id === "pioneer-10" ? (
+              {s.id === "lrv" ? (
+                <Link className="sl-card-link" to="/moon">
+                  {card}
+                </Link>
+              ) : s.id === "pioneer-10" ? (
                 <Link className="sl-card-link" to="/pioneer">
                   {card}
                 </Link>
