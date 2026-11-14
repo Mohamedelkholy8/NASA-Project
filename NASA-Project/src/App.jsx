@@ -1,25 +1,20 @@
+
 import { useLayoutEffect, useRef } from "react";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import Mars1 from "./pages/Mars1";
 import Pioneer from "./pages/Pioneer";
-<<<<<<< HEAD
 import Moon from "./pages/Moon";
 import Kepler from "./pages/Kepler";
-=======
->>>>>>> 6614fb98a4495dac5600e61303534fac55495dcf
 import PageNotFound from "./pages/PageNotFound";
 
-// Every new page starts from the top (React Router keeps the old scroll position)
+// Every new page starts from the top
 function ScrollToTop() {
   const { pathname, state } = useLocation();
   const stateRef = useRef(state);
   stateRef.current = state;
 
-  // runs ONLY when the page (pathname) changes, never when just the state
-  // changes (HomePage clears its state after jumping to the slider)
   useLayoutEffect(() => {
-    // coming back from a quiz: HomePage scrolls to the slider by itself
     if (stateRef.current?.scrollTo) return;
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname]);
@@ -35,11 +30,8 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/mars1" element={<Mars1 />} />
         <Route path="/pioneer" element={<Pioneer />} />
-<<<<<<< HEAD
         <Route path="/moon" element={<Moon />} />
         <Route path="/kepler" element={<Kepler />} />
-=======
->>>>>>> 6614fb98a4495dac5600e61303534fac55495dcf
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </BrowserRouter>
