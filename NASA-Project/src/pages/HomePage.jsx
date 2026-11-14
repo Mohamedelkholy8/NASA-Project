@@ -26,7 +26,9 @@ function HomePage() {
     if (state?.scrollTo !== "slider") return;
     const t = setTimeout(() => {
       ScrollTrigger.refresh();
-      document.getElementById("slider")?.scrollIntoView({ behavior: "auto" });
+      document
+        .getElementById("slider")
+        ?.scrollIntoView({ behavior: "instant", block: "start" });
       navigate(".", { replace: true, state: null }); // so a page refresh doesn't jump again
     }, 150);
     return () => clearTimeout(t);
