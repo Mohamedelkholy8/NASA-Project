@@ -36,6 +36,19 @@ const css = `
 .qz-status.good{color:var(--ok)}
 .qz-status.warn{color:var(--bad)}
 .qz-done{display:inline-block;margin-top:20px;padding:6px 14px;border-radius:999px;border:1px solid var(--ok);color:var(--ok);font-size:.85rem;font-weight:500}
+.qz-start{margin-top:40px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.qz-hint{margin:0;text-align:center;font-weight:500;color:var(--muted,#6E5F58)}
+.qz-hint span{display:inline-block}
+@media(prefers-reduced-motion:no-preference){
+.qz-btn.big{animation:qzpulse 2s infinite}
+.qz-hint span{animation:qzpoint 1s ease-in-out infinite}}
+@keyframes qzpulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent,#A8432A) 55%,transparent)}70%{box-shadow:0 0 0 16px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@keyframes qzpoint{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.qz-btn.big{display:inline-flex;align-items:center;gap:12px;font-size:1.1rem;padding:18px 36px}
+.qz-btn.big span{transition:transform .2s}
+.qz-btn.big:hover span{transform:translate(4px,-4px) rotate(8deg)}
+@media(prefers-reduced-motion:no-preference){.qz-list{animation:qzin .45s ease both}}
+@keyframes qzin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @media(max-width:600px){.qz-q{padding:22px 18px}}
 `;
 
@@ -50,6 +63,7 @@ export default function Quiz({
   const progress = useQuizProgress();
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [started, setStarted] = useState(false); // quiz stays hidden until the user is ready
   const timer = useRef(null);
 
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -102,89 +116,113 @@ export default function Quiz({
           <span className="qz-done">✓ Completed — your star is lit</span>
         )}
 
-        <ol className="qz-list">
-          {questions.map((item, qi) => (
-            <li key={item.q} className="qz-q">
-              <h3 id={`qz-q-${qi}`}>
-                <span className="qz-n">{qi + 1}</span>
-                {item.q}
-              </h3>
-              <div
-                className="qz-opts"
-                role="radiogroup"
-                aria-labelledby={`qz-q-${qi}`}
-              >
-                {item.options.map((opt, oi) => {
-                  const picked = answers[qi] === oi;
-                  const isRight = oi === item.answer;
-                  let cls = "qz-opt";
-                  let mark = "";
-                  if (!submitted) {
-                    if (picked) cls += " sel";
-                  } else if (isRight) {
-                    cls += " ok";
-                    mark = "✓";
-                  } else if (picked) {
-                    cls += " bad";
-                    mark = "✕";
-                  } else {
-                    cls += " dim";
-                  }
-                  return (
-                    <button
-                      key={opt}
-                      type="button"
-                      role="radio"
-                      aria-checked={picked}
-                      className={cls}
-                      onClick={() => choose(qi, oi)}
-                    >
-                      <span className="qz-dot" aria-hidden="true">
-                        {mark}
-                      </span>
-                      <span>{opt}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </li>
-          ))}
-        </ol>
+        {!started && (
+          <div className="qz-start">
+            <button
+              type="button"
+              className="qz-btn big"
+              onClick={() => setStarted(true)}
+            >
+              Ready to get the star? <span aria-hidden="true">⭐</span>
+            </button>
+            <p className="qz-hint">
+              <span aria-hidden="true">👆</span> Click the button to start the
+              quiz!
+            </p>
+          </div>
+        )}
 
-        <div className="qz-foot" aria-live="polite">
-          {!submitted && (
-            <>
-              <button
-                type="button"
-                className="qz-btn"
-                disabled={answered < total}
-                onClick={submit}
-              >
-                Submit answers
-              </button>
-              <span className="qz-status">
-                {answered} of {total} answered
-              </span>
-            </>
-          )}
-          {perfect && (
-            <span className="qz-status good">
-              {score} / {total} — Mission accomplished! Taking you back to the
-              cards…
-            </span>
-          )}
-          {submitted && !perfect && (
-            <>
-              <button type="button" className="qz-btn ghost" onClick={retry}>
-                Try again
-              </button>
-              <span className="qz-status warn">
-                You got {score} of {total}. Check the marked answers and try
-                again.
-              </span>
-            </>
-          )}
-        </div>
+        {started && (
+          <>
+            <ol className="qz-list">
+              {questions.map((item, qi) => (
+                <li key={item.q} className="qz-q">
+                  <h3 id={`qz-q-${qi}`}>
+                    <span className="qz-n">{qi + 1}</span>
+                    {item.q}
+                  </h3>
+                  <div
+                    className="qz-opts"
+                    role="radiogroup"
+                    aria-labelledby={`qz-q-${qi}`}
+                  >
+                    {item.options.map((opt, oi) => {
+                      const picked = answers[qi] === oi;
+                      const isRight = oi === item.answer;
+                      let cls = "qz-opt";
+                      let mark = "";
+                      if (!submitted) {
+                        if (picked) cls += " sel";
+                      } else if (isRight) {
+                        cls += " ok";
+                        mark = "✓";
+                      } else if (picked) {
+                        cls += " bad";
+                        mark = "✕";
+                      } else {
+                        cls += " dim";
+                      }
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          role="radio"
+                          aria-checked={picked}
+                          className={cls}
+                          onClick={() => choose(qi, oi)}
+                        >
+                          <span className="qz-dot" aria-hidden="true">
+                            {mark}
+                          </span>
+                          <span>{opt}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            <div className="qz-foot" aria-live="polite">
+              {!submitted && (
+                <>
+                  <button
+                    type="button"
+                    className="qz-btn"
+                    disabled={answered < total}
+                    onClick={submit}
+                  >
+                    Submit answers
+                  </button>
+                  <span className="qz-status">
+                    {answered} of {total} answered
+                  </span>
+                </>
+              )}
+              {perfect && (
+                <span className="qz-status good">
+                  {score} / {total} — Mission accomplished! Taking you back to
+                  the cards…
+                </span>
+              )}
+              {submitted && !perfect && (
+                <>
+                  <button
+                    type="button"
+                    className="qz-btn ghost"
+                    onClick={retry}
+                  >
+                    Try again
+                  </button>
+                  <span className="qz-status warn">
+                    You got {score} of {total}. Check the marked answers and try
+                    again.
+                  </span>
+                </>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </section>
   );
