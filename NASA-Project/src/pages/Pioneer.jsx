@@ -6,7 +6,8 @@ import img3 from "../../assets/img/pioneer3.jpeg";
 import img4 from "../../assets/img/pioneer4.jpeg";
 import { Navigate } from "react-router-dom";
 import Quiz from "../features/quiz/Quiz";
-import { isQuizDone } from "../utils/quizProgress";
+import { getQuizProgress, isQuizDone } from "../utils/quizProgress";
+import { isCardUnlocked } from "../utils/cards";
 
 /* Edit the alt text / captions here to describe each photo. */
 const photos = {
@@ -253,6 +254,10 @@ export default function Pioneer() {
   // checked once on page load (not live), so the quiz can still show its
   // success message before it sends the user back to the slider
   const [alreadyDone] = useState(() => isQuizDone("pioneer-10"));
+  // previous card's quiz not solved yet -> this page is locked
+  const [locked] = useState(
+    () => !isCardUnlocked("pioneer-10", getQuizProgress()),
+  );
   // video popup (same behaviour as the Hero popup on the home page)
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
@@ -286,7 +291,7 @@ export default function Pioneer() {
     };
   }, [closeVideo, isVideoOpen]);
   // quiz already solved -> this page is closed, go back to the slider
-  if (alreadyDone) {
+  if (alreadyDone || locked) {
     return <Navigate to="/" replace state={{ scrollTo: "slider" }} />;
   }
 

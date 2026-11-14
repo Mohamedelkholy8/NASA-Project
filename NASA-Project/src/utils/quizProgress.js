@@ -54,6 +54,11 @@ export function resetQuizProgress() {
   emit();
 }
 
+// plain (non-hook) read of everything, handy for route guards
+export function getQuizProgress() {
+  return snapshot;
+}
+
 // plain (non-hook) check, handy for route guards
 export function isQuizDone(cardId) {
   return !!snapshot[cardId];
@@ -61,5 +66,9 @@ export function isQuizDone(cardId) {
 
 // returns an object like { "viking-1": true }
 export function useQuizProgress() {
-  return useSyncExternalStore(subscribe, () => snapshot, () => ({}));
+  return useSyncExternalStore(
+    subscribe,
+    () => snapshot,
+    () => ({}),
+  );
 }

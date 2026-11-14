@@ -3,13 +3,12 @@
 import { useLayoutEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { resetQuizProgress, useQuizProgress } from "../../utils/quizProgress";
+import { CARD_ORDER, isCardUnlocked } from "../../utils/cards";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import astronautImg from "../../../assets/img/space-research.png";
 import vikingImg from "../../../assets/img/viking-launch.jpg";
-import keplerImg from "../../../assets/img/kepler1.jpg";
 import pioneerCardImg from "../../../assets/img/pioneerCard.jpeg";
-import moonCardImg from "../../../assets/img/moonCard.jpeg";
 
 gsap.registerPlugin(ScrollTrigger);
 // على الموبايل: ماتعملش refresh كل ما شريط العنوان يطلع/ينزل (بيعمل نط في الـ pin)
@@ -36,7 +35,6 @@ const SLIDES = [
     meta: "Space telescope · 2009",
     hue: 25,
     planet: "mars",
-    image: keplerImg,
     y: 190,
     rot: 2,
   },
@@ -59,7 +57,6 @@ const SLIDES = [
     meta: "Apollo 15 · 16 · 17",
     hue: 215,
     planet: "moon",
-    image: moonCardImg,
     y: 170,
     rot: -2,
   },
@@ -291,7 +288,7 @@ export default function Slide() {
       </div>
 
       <div ref={track} className="sl-track">
-        {SLIDES.map((s, i) => {
+        {SLIDES.map((s) => {
           const card = (
             <>
               <div className="sl-frame">
@@ -311,37 +308,43 @@ export default function Slide() {
           );
 
           const isDone = !!done[s.id];
+          // card N opens only after the quiz of card N-1 is solved
+          const unlocked = isCardUnlocked(s.id, done);
+          const isLocked = !unlocked && !isDone;
+          const path = CARD_ORDER.find((c) => c.id === s.id)?.path;
+          const canOpen = !!path && unlocked && !isDone;
 
           return (
             <article
               key={s.title}
-              className={`sl-card sl-${s.group.toLowerCase()}${isDone ? " sl-done" : ""}`}
+              className={`sl-card sl-${s.group.toLowerCase()}${isDone ? " sl-done" : ""}${isLocked ? " sl-locked" : ""}`}
               data-rot={s.rot}
-              aria-disabled={isDone || undefined}
+              aria-disabled={isDone || isLocked || undefined}
               style={{
                 "--y": `${s.y}px`,
                 "--h": s.hue,
                 transform: `rotate(${s.rot}deg)`,
               }}
             >
-              {s.id === "kepler" ? (
-                <Link className="sl-card-link" to="/kepler">
-                  {card}
-                </Link>
-              ) : s.id === "lrv" ? (
-                <Link className="sl-card-link" to="/moon">
-                  {card}
-                </Link>
-              ) : s.id === "pioneer-10" ? (
-                <Link className="sl-card-link" to="/pioneer">
-                  {card}
-                </Link>
-              ) : i === 0 && !isDone ? ( // solved card = no link, can't be opened again
-                <Link className="sl-card-link" to="/mars1">
+              {canOpen ? ( // solved or locked card = no link, can't be opened
+                <Link className="sl-card-link" to={path}>
                   {card}
                 </Link>
               ) : (
                 card
+              )}
+              {/* Locked until the previous card's quiz is solved */}
+              {isLocked && (
+                <div
+                  className="sl-lock"
+                  role="img"
+                  aria-label="Locked: solve the previous card's quiz first"
+                >
+                  <span className="sl-lock-icon">🔒</span>
+                  <span className="sl-lock-text">
+                    Finish the previous quiz to unlock
+                  </span>
+                </div>
               )}
               {/* Star: outline = quiz not solved yet, filled = solved */}
               <span
@@ -466,6 +469,14 @@ const css = `
 .sl-card.sl-done .sl-star{pointer-events:auto}
 .sl-card.sl-done .sl-group{color:#8b8a99}
 .sl-card.sl-done h3, .sl-card.sl-done p{opacity:.7}
+/* locked card -> dark + lock on top, can't be clicked */
+.sl-card.sl-locked .sl-frame{filter:grayscale(1) brightness(.4)}
+.sl-card.sl-locked, .sl-card.sl-locked *{cursor:not-allowed}
+.sl-card.sl-locked{user-select:none}
+.sl-card.sl-locked h3, .sl-card.sl-locked p{opacity:.55}
+.sl-lock{position:absolute; left:0; top:0; width:100%; aspect-ratio:3/4; z-index:2; display:grid; place-content:center; justify-items:center; gap:12px; padding:0 16px; text-align:center; pointer-events:none}
+.sl-lock-icon{font-size:44px; line-height:1; filter:drop-shadow(0 4px 10px #000a)}
+.sl-lock-text{font-size:11px; letter-spacing:.1em; line-height:1.5; padding:6px 12px; border-radius:999px; background:#0a0818d9; border:1px solid #ffffff33}
 .sl-frame{
   padding:5px; border-radius:14px; aspect-ratio:3/4;
   background:linear-gradient(135deg, #e9e4ff, #8f7bff 35%, #4a6dff 65%, #d9f1ff);
